@@ -12,6 +12,8 @@ from prettytable import PrettyTable
 from tqdm import tqdm
 
 import argparse
+import h2o
+
 
 from experiment.utils import scenarios as scenarios_util
 from results_processors.utils import create_directory
@@ -129,6 +131,7 @@ with tqdm(total=total_runtime) as pbar:
 
         if args.pipeline == "auto":
             meta_features = extract_metafeatures(current_scenario['setup']['dataset'])
+            h2o.init()
             features_rebalance_order = predict_order(meta_features, config['algorithm'], UndefinedOrders.features_rebalance)
             discretize_rebalance_order = predict_order(meta_features, config['algorithm'], UndefinedOrders.discretize_rebalance)
             pipelines = build_pipeline(features_rebalance_order, discretize_rebalance_order)

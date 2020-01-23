@@ -32,7 +32,6 @@ def extract_metafeatures(id):
 
 def predict_order(meta_features, algorithm, undefined_order):
     acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
-    h2o.init()
     if undefined_order == UndefinedOrders.features_rebalance:
         saved_model = h2o.load_model("models/features_rebalance/three_classes/gbm_" + acronym + "/model")
     else:
