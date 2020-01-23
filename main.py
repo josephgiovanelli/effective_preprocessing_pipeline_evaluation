@@ -10,16 +10,15 @@ import openml
 
 from sklearn.model_selection import train_test_split
 
+
 def load_dataset(id):
     dataset = openml.datasets.get_dataset(id)
     X, y, categorical_indicator, _ = dataset.get_data(
         dataset_format='array',
         target=dataset.default_target_attribute
     )
-    X = SimpleImputer(strategy="constant").fit_transform(X)
     print(dataset.name)
     print(X, y)
-    PrototypeSingleton.getInstance().setPipeline(args.pipeline)
     num_features = [i for i, x in enumerate(categorical_indicator) if x == False]
     cat_features = [i for i, x in enumerate(categorical_indicator) if x == True]
     print("numeriche: " + str(len(num_features)) + " categoriche: " + str(len(cat_features)))
@@ -32,6 +31,8 @@ def main(args):
     scenario = cli.apply_scenario_customization(scenario, args.customize)
     config = scenarios.to_config(scenario)
     print('SCENARIO:\n {}'.format(json.dumps(scenario, indent=4, sort_keys=True)))
+
+    PrototypeSingleton.getInstance().setPipeline(args.pipeline)
 
     X, y = load_dataset(scenario['setup']['dataset'])
 
