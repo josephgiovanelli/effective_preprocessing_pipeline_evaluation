@@ -11,6 +11,7 @@ import openml
 from sklearn.model_selection import train_test_split
 
 import numpy as np
+import pandas as pd
 
 
 def load_dataset(id):
@@ -21,6 +22,8 @@ def load_dataset(id):
     )
     print(dataset.name)
     print(X, y)
+    #X = decode(X, categorical_indicator)
+    #print(X)
     num_features = [i for i, x in enumerate(categorical_indicator) if x == False]
     cat_features = [i for i, x in enumerate(categorical_indicator) if x == True]
     print("numeriche: " + str(len(num_features)) + " categoriche: " + str(len(cat_features)))
@@ -52,6 +55,20 @@ def main(args):
     policy.run(X, y)
 
     serializer.serialize_results(scenario, policy, args.result_path, args.pipeline)
+
+def decode(X, categorical_indicator):
+    if True in categorical_indicator:
+        X = pd.DataFrame(X)
+        for i in range(0, len(categorical_indicator)):
+            if categorical_indicator[i]:
+                X.iloc[:, i] = X.iloc[:, i].fillna(-1)
+                X.iloc[:, i] = X.iloc[:, i].astype('str')
+                X.iloc[:, i] = X.iloc[:, i].replace('-1', np.nan)
+            else:
+                X.iloc[:, i] = X.iloc[:, i].fillna(-1)
+                X.iloc[:, i] = X.iloc[:, i].astype('float')
+                X.iloc[:, i] = X.iloc[:, i].replace(-1.0, np.nan)
+    return X.to_numpy()
 
 
 if __name__ == "__main__":

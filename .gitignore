@@ -127,7 +127,9 @@ dmypy.json
 #added by joseph giovanelli
 .scenarios
 .results
+.results_with_decoding
 .models
 scenarios/
 results/
+results_with_decoding/
 models/

@@ -20,7 +20,7 @@ class PrototypeSingleton:
    POOL = {
        "impute": [None, SimpleImputer(), IterativeImputer()],
        "encode": [None, OneHotEncoder()],
-       #"encode": [OneHotEncoder(), OrdinalEncoder()],
+       #"encode": [None, OneHotEncoder(), OrdinalEncoder()],
        "rebalance": [None, NearMiss(), SMOTE()],
        #"rebalance": [None, NearMiss(), CondensedNearestNeighbour(), SMOTE()],
        "normalize": [None, StandardScaler(), PowerTransformer(), MinMaxScaler(), RobustScaler()],

@@ -187,6 +187,7 @@ with tqdm(total=total_runtime) as pbar:
 
             elif args.pipeline == "quemy":
                 pipeline = "impute rebalance normalize features"
+                #pipeline = "impute encode rebalance normalize features"
 
                 result_path = create_directory(RESULT_PATH, "quemy")
 
@@ -254,5 +255,7 @@ with tqdm(total=total_runtime) as pbar:
                 src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
                 dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
                 shutil.copy(src_dir, dst_dir)
+        else:
+            print("not available in all the meta-learners")
 
         pbar.update(info['runtime'])
