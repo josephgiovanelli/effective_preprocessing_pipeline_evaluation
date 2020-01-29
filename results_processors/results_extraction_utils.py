@@ -52,12 +52,12 @@ def load_results(input_path, filtered_datasets):
 
     return results_map
 
-def merge_results(pipeline_results, algorithm_results):
+def merge_results(pipeline_results, algorithm_results, first_label, second_label):
     comparison = {}
     summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
-        summary[acronym] = {'quemy': 0, 'auto': 0, 'draw': 0}
+        summary[acronym] = {first_label: 0, second_label: 0, 'draw': 0}
         comparison[acronym] = {}
 
     for key, value in pipeline_results.items():
@@ -67,11 +67,11 @@ def merge_results(pipeline_results, algorithm_results):
         if algorithm_results[key]['baseline_score'] != pipeline_results[key]['baseline_score']:
             print('Different baseline scores: ' + str(key) + ' ' + str(algorithm_results[key]['baseline_score']))
 
-        comparison[acronym][data_set] = {'quemy': algorithm_results[key]['accuracy'], 'auto': pipeline_results[key]['accuracy'], 'baseline': algorithm_results[key]['baseline_score']}
-        winner = 'quemy' if comparison[acronym][data_set]['quemy'] > comparison[acronym][data_set]['auto'] else ('auto' if comparison[acronym][data_set]['quemy'] < comparison[acronym][data_set]['auto'] else 'draw')
+        comparison[acronym][data_set] = {first_label: algorithm_results[key]['accuracy'], second_label: pipeline_results[key]['accuracy'], 'baseline': algorithm_results[key]['baseline_score']}
+        winner = first_label if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] else (second_label if comparison[acronym][data_set][first_label] < comparison[acronym][data_set][second_label] else 'draw')
         summary[acronym][winner] += 1
 
-    new_summary = {'quemy': 0, 'auto': 0, 'draw': 0}
+    new_summary = {first_label: 0, second_label: 0, 'draw': 0}
     for algorithm, results in summary.items():
         for category, result in summary[algorithm].items():
             new_summary[category] += summary[algorithm][category]
