@@ -10,6 +10,8 @@ import openml
 
 from sklearn.model_selection import train_test_split
 
+import numpy as np
+
 
 def load_dataset(id):
     dataset = openml.datasets.get_dataset(id)
@@ -30,6 +32,8 @@ def main(args):
     scenario = scenarios.load(args.scenario)
     scenario = cli.apply_scenario_customization(scenario, args.customize)
     config = scenarios.to_config(scenario)
+    config['time'] /= args.factor
+    print(config['time'])
     print('SCENARIO:\n {}'.format(json.dumps(scenario, indent=4, sort_keys=True)))
 
     PrototypeSingleton.getInstance().setPipeline(args.pipeline)
@@ -47,7 +51,7 @@ def main(args):
     policy = policies.initiate(scenario['setup']['policy'], config)
     policy.run(X, y)
 
-    serializer.serialize_results(scenario, policy, args.result_path)
+    serializer.serialize_results(scenario, policy, args.result_path, args.pipeline)
 
 
 if __name__ == "__main__":

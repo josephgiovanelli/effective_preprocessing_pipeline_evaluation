@@ -2,10 +2,11 @@ from datetime import datetime
 import json
 import os
 
-def serialize_results(scenario, policy, result_path):
+def serialize_results(scenario, policy, result_path, pipeline):
     results = {
         'scenario': scenario,
-        'context': policy.context
+        'context': policy.context,
+        'pipeline': pipeline
     }
     path = os.path.join(result_path, '{}.json'.format(scenario['file_name']))
     with open(path, 'w') as outfile:

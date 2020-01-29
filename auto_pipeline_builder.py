@@ -1,5 +1,6 @@
-import numpy
+import numpy as np
 import openml
+import os
 import h2o
 import pandas as pd
 from pymfe.mfe import MFE
@@ -26,16 +27,29 @@ def extract_metafeatures(id):
     ft = mfe.extract()
 
     for i in range(0, len(ft[0])):
-        dict[ft[0][i]] = ["na"] if numpy.isnan(ft[1][i]) else [ft[1][i]]
+        dict[ft[0][i]] = ["na"] if np.isnan(ft[1][i]) else [ft[1][i]]
 
     return dict
 
-def predict_order(meta_features, algorithm, undefined_order):
+def load_metafeatures(id):
+    df = pd.read_csv('results_processors/meta_features/extracted-meta-features.csv')
+    df = df.loc[df['id'] == id]
+    df = df.drop(['id'], axis=1)
+    df = df.fillna("na")
+    return df
+
+def check_existence(id, algorithm):
+    acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
+    features_rebalance = os.path.exists("models/features_rebalance/three_classes_id/xgboost_" + acronym + "/" + str(id))
+    discretize_rebalance = os.path.exists("models/discretize_rebalance/three_classes_id/xgboost_" + acronym + "/" + str(id))
+    return features_rebalance and discretize_rebalance
+
+def predict_order(id, meta_features, algorithm, undefined_order):
     acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
     if undefined_order == UndefinedOrders.features_rebalance:
-        saved_model = h2o.load_model("models/features_rebalance/three_classes/gbm_" + acronym + "/model")
+        saved_model = h2o.load_model("models/features_rebalance/three_classes_id/xgboost_" + acronym + "/" + str(id) + "/model")
     else:
-        saved_model = h2o.load_model("models/discretize_rebalance/three_classes/gbm_" + acronym + "/model")
+        saved_model = h2o.load_model("models/discretize_rebalance/three_classes_id/xgboost_" + acronym + "/" + str(id) + "/model")
 
     prediction = saved_model.predict(h2o.H2OFrame(meta_features, na_strings=["na"]))["predict"]
     if prediction == "no_order":
@@ -58,10 +72,19 @@ def predict_order(meta_features, algorithm, undefined_order):
     elif prediction == "RF" or prediction == "RD":
         return DefinedOrders.second_first
 
+#['impute encode normalize rebalance features', 'impute encode rebalance discretize features']
 def build_pipeline(features_rebalance_order, discretize_rebalance_order):
-    pipeline = "impute encode normalize "
+    pipelines = []
+    if features_rebalance_order == DefinedOrders.first_second:
+        pipelines.append("impute encode normalize features rebalance")
+    else:
+        pipelines.append("impute encode normalize rebalance features")
+
+    pipeline = "impute encode "
+
     if features_rebalance_order == DefinedOrders.first_second and discretize_rebalance_order == DefinedOrders.second_first:
-        return [pipeline + "rebalance discretize features", pipeline + "discretize features rebalance"]
+        pipelines.append(pipeline + "rebalance discretize features")
+        pipelines.append(pipeline + "discretize features rebalance")
     else:
         if features_rebalance_order == DefinedOrders.first_second and discretize_rebalance_order == DefinedOrders.first_second:
             pipeline += "discretize features rebalance"
@@ -69,7 +92,22 @@ def build_pipeline(features_rebalance_order, discretize_rebalance_order):
             pipeline += "discretize rebalance features"
         elif features_rebalance_order == DefinedOrders.second_first and discretize_rebalance_order == DefinedOrders.second_first:
             pipeline += "rebalance discretize features"
-        return [pipeline]
+        pipelines.append(pipeline)
+
+    return pipelines
+
+def pseudo_exhaustive_pipelines():
+    pipelines = []
+
+    pipelines.append("impute encode normalize features rebalance")
+    pipelines.append("impute encode normalize rebalance features")
+
+    pipeline = "impute encode "
+    pipelines.append(pipeline + "rebalance discretize features")
+    pipelines.append(pipeline + "discretize rebalance features")
+    pipelines.append(pipeline + "discretize features rebalance")
+
+    return pipelines
 
 
 

@@ -13,11 +13,12 @@ from tqdm import tqdm
 
 import argparse
 import h2o
-
+import pandas as pd
 
 from experiment.utils import scenarios as scenarios_util
 from results_processors.utils import create_directory
-from auto_pipeline_builder import extract_metafeatures, predict_order, build_pipeline, UndefinedOrders, DefinedOrders
+from auto_pipeline_builder import extract_metafeatures, predict_order, build_pipeline, UndefinedOrders, DefinedOrders, \
+    check_existence, load_metafeatures, pseudo_exhaustive_pipelines
 
 parser = argparse.ArgumentParser(description="Automated Machine Learning Workflow creation and configuration")
 parser.add_argument("-p", "--pipeline", nargs="?", type=str, required=True, help="kind of pipeline to execute")
@@ -125,50 +126,36 @@ with tqdm(total=total_runtime) as pbar:
         base_scenario = info['path'].split('.yaml')[0]
         output = base_scenario.split('_')[0]
         pbar.set_description("Running scenario {}\n\r".format(info['path']))
+        print()
 
         current_scenario = scenarios_util.load(os.path.join(SCENARIO_PATH, info['path']))
         config = scenarios_util.to_config(current_scenario)
 
-        if args.pipeline == "auto":
-            meta_features = extract_metafeatures(current_scenario['setup']['dataset'])
-            h2o.init()
-            features_rebalance_order = predict_order(meta_features, config['algorithm'], UndefinedOrders.features_rebalance)
-            discretize_rebalance_order = predict_order(meta_features, config['algorithm'], UndefinedOrders.discretize_rebalance)
-            pipelines = build_pipeline(features_rebalance_order, discretize_rebalance_order)
+        if check_existence(current_scenario['setup']['dataset'], config['algorithm']):
+            if args.pipeline == "auto":
+                meta_features = load_metafeatures(current_scenario['setup']['dataset'])
 
-            print(pipelines)
+                h2o.init()
+                features_rebalance_order = predict_order(current_scenario['setup']['dataset'], meta_features, config['algorithm'], UndefinedOrders.features_rebalance)
+                discretize_rebalance_order = predict_order(current_scenario['setup']['dataset'], meta_features, config['algorithm'], UndefinedOrders.discretize_rebalance)
+                pipelines = build_pipeline(features_rebalance_order, discretize_rebalance_order)
 
-            result_path = create_directory(RESULT_PATH, "auto")
+                print(pipelines)
 
-            if len(pipelines) == 1:
-                pipeline = pipelines[0]
-                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {}'.format(
-                    os.path.join(SCENARIO_PATH, info['path']),
-                    GLOBAL_SEED,
-                    pipeline,
-                    result_path)
-                with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
-                    with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
-                        max_time = 1000
-                        try:
-                            process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
-                            process.wait(timeout = max_time)
-                        except:
-                            kill(process.pid)
-                            print("\n\n"+ base_scenario + " does not finish in " + str(max_time) + "\n\n" )
+                result_path = create_directory(RESULT_PATH, "auto")
 
-            else:
                 results = []
                 for i in range(0, len(pipelines)):
                     pipeline = pipelines[i]
-                    cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {}'.format(
+                    cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
                         os.path.join(SCENARIO_PATH, info['path']),
                         GLOBAL_SEED,
                         pipeline,
-                        result_path)
+                        result_path,
+                        len(pipelines))
                     with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))), "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))), "a") as log_err:
-                            max_time = 1000
+                            max_time = 1000 / len(pipelines)
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
@@ -176,41 +163,96 @@ with tqdm(total=total_runtime) as pbar:
                                 kill(process.pid)
                                 print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
 
-                    os.rename(os.path.join(result_path, '{}.json'.format(base_scenario)),
-                              os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i))))
+                    try:
+                        os.rename(os.path.join(result_path, '{}.json'.format(base_scenario)),
+                                  os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i))))
 
-                    with open(os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
-                        data = json.load(json_file)
-                        accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                        with open(os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
+                            data = json.load(json_file)
+                            accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                            results.append(accuracy)
+                    except:
+                        accuracy = 0
                         results.append(accuracy)
                     print(results)
 
-                #confrontare le accuracy dei due risultati e nominare "scenario.json" quello migliore
+                max_i = 0
+                for i in range(1, len(pipelines)):
+                    if results[i] > results[max_i]:
+                        max_i = i
+
+                src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
                 dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
-                if results[0] > results[1]:
-                    src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_0"))
-                else:
-                    src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_1"))
-
                 shutil.copy(src_dir, dst_dir)
-        else:
-            pipeline = "impute rebalance normalize features"
 
-            result_path = create_directory(RESULT_PATH, "quemy")
+            elif args.pipeline == "quemy":
+                pipeline = "impute rebalance normalize features"
 
-            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {}'.format(
-                os.path.join(SCENARIO_PATH, info['path']),
-                GLOBAL_SEED,
-                pipeline,
-                result_path)
-            with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
-                with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
-                    max_time = 1000
+                result_path = create_directory(RESULT_PATH, "quemy")
+
+                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                    os.path.join(SCENARIO_PATH, info['path']),
+                    GLOBAL_SEED,
+                    pipeline,
+                    result_path,
+                    1)
+                with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
+                    with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
+                        max_time = 1000
+                        try:
+                            process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
+                            process.wait(timeout=max_time)
+                        except:
+                            kill(process.pid)
+                            print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+            elif args.pipeline == "pseudo-exhaustive":
+
+                pipelines = pseudo_exhaustive_pipelines()
+
+                result_path = create_directory(RESULT_PATH, "pseudo-exhaustive")
+
+                results = []
+                for i in range(0, len(pipelines)):
+                    pipeline = pipelines[i]
+                    cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                        os.path.join(SCENARIO_PATH, info['path']),
+                        GLOBAL_SEED,
+                        pipeline,
+                        result_path,
+                        len(pipelines))
+                    with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
+                              "a") as log_out:
+                        with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
+                                  "a") as log_err:
+                            max_time = 1000 / len(pipelines)
+                            try:
+                                process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
+                                process.wait(timeout=max_time)
+                            except:
+                                kill(process.pid)
+                                print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+
                     try:
-                        process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
-                        process.wait(timeout=max_time)
+                        os.rename(os.path.join(result_path, '{}.json'.format(base_scenario)),
+                                  os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i))))
+
+                        with open(
+                                os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
+                            data = json.load(json_file)
+                            accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                            results.append(accuracy)
                     except:
-                        kill(process.pid)
-                        print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+                        accuracy = 0
+                        results.append(accuracy)
+                    print(results)
+
+                max_i = 0
+                for i in range(1, len(pipelines)):
+                    if results[i] > results[max_i]:
+                        max_i = i
+
+                src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
+                dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
+                shutil.copy(src_dir, dst_dir)
 
         pbar.update(info['runtime'])
