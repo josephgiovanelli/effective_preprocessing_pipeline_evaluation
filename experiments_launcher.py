@@ -155,7 +155,7 @@ with tqdm(total=total_runtime) as pbar:
                         len(pipelines))
                     with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))), "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))), "a") as log_err:
-                            max_time = 1000 / len(pipelines)
+                            max_time = 1000
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
@@ -225,7 +225,7 @@ with tqdm(total=total_runtime) as pbar:
                               "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
                                   "a") as log_err:
-                            max_time = 1000 / len(pipelines)
+                            max_time = 1000
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
