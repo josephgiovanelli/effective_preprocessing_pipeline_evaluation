@@ -155,7 +155,7 @@ with tqdm(total=total_runtime) as pbar:
                         len(pipelines))
                     with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))), "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))), "a") as log_err:
-                            max_time = 1000
+                            max_time = 1000 / len(pipelines)
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
@@ -176,14 +176,19 @@ with tqdm(total=total_runtime) as pbar:
                         results.append(accuracy)
                     print(results)
 
-                max_i = 0
-                for i in range(1, len(pipelines)):
-                    if results[i] > results[max_i]:
-                        max_i = i
+                try:
+                    max_i = 0
+                    for i in range(1, len(pipelines)):
+                        if results[i] > results[max_i]:
+                            max_i = i
 
-                src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
-                dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
-                shutil.copy(src_dir, dst_dir)
+                    src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
+                    dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
+                    shutil.copy(src_dir, dst_dir)
+                except:
+                    with open(os.path.join(result_path, '{}.txt'.format(base_scenario)), "a") as log_out:
+                        print("no available result")
+
 
             elif args.pipeline == "quemy":
                 pipeline = "impute rebalance normalize features"
@@ -225,7 +230,7 @@ with tqdm(total=total_runtime) as pbar:
                               "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
                                   "a") as log_err:
-                            max_time = 1000
+                            max_time = 1000 / len(pipelines)
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
@@ -247,14 +252,18 @@ with tqdm(total=total_runtime) as pbar:
                         results.append(accuracy)
                     print(results)
 
-                max_i = 0
-                for i in range(1, len(pipelines)):
-                    if results[i] > results[max_i]:
-                        max_i = i
+                try:
+                    max_i = 0
+                    for i in range(1, len(pipelines)):
+                        if results[i] > results[max_i]:
+                            max_i = i
 
-                src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
-                dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
-                shutil.copy(src_dir, dst_dir)
+                    src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
+                    dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario))
+                    shutil.copy(src_dir, dst_dir)
+                except:
+                    with open(os.path.join(result_path, '{}.txt'.format(base_scenario)), "a") as log_out:
+                        print("no available result")
         else:
             print("not available in all the meta-learners")
 
