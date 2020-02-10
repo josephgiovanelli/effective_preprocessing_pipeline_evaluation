@@ -30,12 +30,12 @@ def main():
     print(quemy_results)
     print(pseudo_exhaustive_results)
 
-    comparison, summary = merge_results(auto_results, quemy_results, 'quemy', 'auto')
+    comparison, summary = merge_results(quemy_results, auto_results, 'quemy', 'auto')
     save_comparison(comparison, create_directory(result_path, "quemy_auto"))
     save_summary(summary, create_directory(result_path, "quemy_auto"))
 
 
-    comparison, summary = merge_results(auto_results, pseudo_exhaustive_results, 'pseudo_exhaustive', 'auto')
+    comparison, summary = merge_results( pseudo_exhaustive_results, auto_results, 'pseudo_exhaustive', 'auto')
     save_comparison(comparison, create_directory(result_path, "pseudoexhaustive_auto"))
     save_summary(summary, create_directory(result_path, "pseudoexhaustive_auto"))
 

@@ -52,7 +52,7 @@ def load_results(input_path, filtered_datasets):
 
     return results_map
 
-def merge_results(pipeline_results, algorithm_results, first_label, second_label):
+def merge_results(first_results, second_results, first_label, second_label):
     comparison = {}
     summary = {}
     for algorithm in algorithms:
@@ -60,16 +60,31 @@ def merge_results(pipeline_results, algorithm_results, first_label, second_label
         summary[acronym] = {first_label: 0, second_label: 0, 'draw': 0}
         comparison[acronym] = {}
 
-    for key, value in pipeline_results.items():
+    for key, value in first_results.items():
         acronym = key.split('_')[0]
         data_set = key.split('_')[1]
 
-        if algorithm_results[key]['baseline_score'] != pipeline_results[key]['baseline_score']:
-            print('Different baseline scores: ' + str(key) + ' ' + str(algorithm_results[key]['baseline_score']))
+        if first_results[key]['baseline_score'] != second_results[key]['baseline_score']:
+            print('Different baseline scores: ' + str(key) + ' ' + str(second_results[key]['baseline_score']))
 
-        comparison[acronym][data_set] = {first_label: algorithm_results[key]['accuracy'], second_label: pipeline_results[key]['accuracy'], 'baseline': algorithm_results[key]['baseline_score']}
-        winner = first_label if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] else (second_label if comparison[acronym][data_set][first_label] < comparison[acronym][data_set][second_label] else 'draw')
+        comparison[acronym][data_set] = {first_label: first_results[key]['accuracy'],
+                                         second_label: second_results[key]['accuracy'],
+                                         'baseline': first_results[key]['baseline_score']}
+        winner, loser = (first_label, second_label) if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] else ((second_label, first_label) if comparison[acronym][data_set][first_label] < comparison[acronym][data_set][second_label] else ('draw', 'draw'))
         summary[acronym][winner] += 1
+
+        if winner == 'draw':
+            winner, loser = first_label, second_label
+
+        if comparison[acronym][data_set][loser] == comparison[acronym][data_set]['baseline']:
+            comparison[acronym][data_set]['score'] = 'nan'
+        else:
+            score = (comparison[acronym][data_set][winner] - comparison[acronym][data_set]['baseline']) / (comparison[acronym][data_set][loser] - comparison[acronym][data_set]['baseline'])
+
+            if winner == first_label:
+                comparison[acronym][data_set]['score'] = 1 - score
+            else:
+                comparison[acronym][data_set]['score'] = score - 1
 
     new_summary = {first_label: 0, second_label: 0, 'draw': 0}
     for algorithm, results in summary.items():
