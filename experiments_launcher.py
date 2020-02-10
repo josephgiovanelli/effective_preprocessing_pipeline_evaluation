@@ -122,6 +122,7 @@ def kill(proc_pid):
     process.kill()
 
 with tqdm(total=total_runtime) as pbar:
+    h2o.init()
     for info in to_run.values():
         base_scenario = info['path'].split('.yaml')[0]
         output = base_scenario.split('_')[0]
@@ -135,7 +136,6 @@ with tqdm(total=total_runtime) as pbar:
             if args.pipeline == "auto":
                 meta_features = load_metafeatures(current_scenario['setup']['dataset'])
 
-                h2o.init()
                 features_rebalance_order = predict_order(current_scenario['setup']['dataset'], meta_features, config['algorithm'], UndefinedOrders.features_rebalance)
                 discretize_rebalance_order = predict_order(current_scenario['setup']['dataset'], meta_features, config['algorithm'], UndefinedOrders.discretize_rebalance)
                 pipelines = build_pipeline(features_rebalance_order, discretize_rebalance_order)
@@ -155,7 +155,7 @@ with tqdm(total=total_runtime) as pbar:
                         len(pipelines))
                     with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))), "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))), "a") as log_err:
-                            max_time = 1000 / len(pipelines)
+                            max_time = 3000 / len(pipelines)
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
@@ -204,7 +204,7 @@ with tqdm(total=total_runtime) as pbar:
                     1)
                 with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
                     with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
-                        max_time = 1000
+                        max_time = 3000
                         try:
                             process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                             process.wait(timeout=max_time)
@@ -230,7 +230,7 @@ with tqdm(total=total_runtime) as pbar:
                               "a") as log_out:
                         with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
                                   "a") as log_err:
-                            max_time = 1000 / len(pipelines)
+                            max_time = 3000 / len(pipelines)
                             try:
                                 process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
                                 process.wait(timeout=max_time)
