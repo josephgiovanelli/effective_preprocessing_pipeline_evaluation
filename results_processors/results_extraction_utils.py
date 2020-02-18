@@ -20,53 +20,52 @@ def get_filtered_datasets():
     df = df['did']
     return df.values.flatten().tolist()
 
-def load_results(input_path, filtered_datasets):
+def load_results(input_path, filtered_data_sets):
+    #exceptions = ['nb_37', 'rf_1510', 'rf_1497', 'knn_1489', 'rf_1462', 'nb_46', 'knn_23517', 'rf_1063', 'nb_23517',
+    #              'rf_40701', 'nb_1501', 'rf_44', 'nb_1497', 'knn_1486', 'rf_28']
     results_map = {}
     files = [f for f in listdir(input_path) if isfile(join(input_path, f))]
     results = [f[:-5] for f in files if f[-4:] == 'json']
-    for algorithm in algorithms:
-        for dataset in filtered_datasets:
-            acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
-            acronym += '_' + str(dataset)
-            if acronym in results:
-                with open(os.path.join(input_path, acronym + '.json')) as json_file:
-                    data = json.load(json_file)
-                    accuracy = data['context']['best_config']['score'] // 0.0001 / 100
-                    pipeline = str(data['context']['best_config']['pipeline']).replace(' ', '').replace(',', ' ')
-                    num_iterations = data['context']['iteration'] + 1
-                    best_iteration = data['context']['best_config']['iteration'] + 1
-                    baseline_score = data['context']['baseline_score'] // 0.0001 / 100
-            else:
-                accuracy = 0
-                pipeline = ''
-                num_iterations = 0
-                best_iteration = 0
-                baseline_score = 0
+    for acronym in filtered_data_sets:
+        if acronym in results:
+            with open(os.path.join(input_path, acronym + '.json')) as json_file:
+                data = json.load(json_file)
+                accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                pipeline = str(data['context']['best_config']['pipeline']).replace(' ', '').replace(',', ' ')
+                num_iterations = data['context']['iteration'] + 1
+                best_iteration = data['context']['best_config']['iteration'] + 1
+                baseline_score = data['context']['baseline_score'] // 0.0001 / 100
+        else:
+            accuracy = 0
+            pipeline = ''
+            num_iterations = 0
+            best_iteration = 0
+            baseline_score = 0
 
-            results_map[acronym] = {}
-            results_map[acronym]['accuracy'] = accuracy
-            results_map[acronym]['baseline_score'] = baseline_score
-            results_map[acronym]['num_iterations'] = num_iterations
-            results_map[acronym]['best_iteration'] = best_iteration
-            results_map[acronym]['pipeline'] = pipeline
+        results_map[acronym] = {}
+        results_map[acronym]['accuracy'] = accuracy
+        results_map[acronym]['baseline_score'] = baseline_score
+        results_map[acronym]['num_iterations'] = num_iterations
+        results_map[acronym]['best_iteration'] = best_iteration
+        results_map[acronym]['pipeline'] = pipeline
 
     return results_map
 
-def merge_results(auto_results, other_results, other_label):
+def merge_results(auto_results, other_results, other_label, filtered_data_sets):
     auto_label = 'auto'
     comparison = {}
     summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
-        summary[acronym] = {other_label: 0, auto_label: 0, 'draw': 0}
+        summary[acronym] = {auto_label: 0, other_label: 0, 'draw': 0}
         comparison[acronym] = {}
 
-    for key, value in other_results.items():
+    for key in filtered_data_sets:
         acronym = key.split('_')[0]
         data_set = key.split('_')[1]
 
         baseline_score = auto_results[key]['baseline_score']
-        if other_results[key]['baseline_score'] != auto_results[key]['baseline_score']:
+        if auto_results[key]['baseline_score'] != other_results[key]['baseline_score']:
             print('Different baseline scores: ' + str(key) + ' ' + str(auto_results[key]['baseline_score']) + ' ' + str(other_results[key]['baseline_score']))
             baseline_score = auto_results[key]['baseline_score'] if auto_results[key]['baseline_score'] > other_results[key]['baseline_score'] else other_results[key]['baseline_score']
 
@@ -75,8 +74,8 @@ def merge_results(auto_results, other_results, other_label):
                                          'baseline': baseline_score}
         winner, loser = (other_label, auto_label) \
             if comparison[acronym][data_set][other_label] > comparison[acronym][data_set][auto_label] \
-            else ((auto_label, other_label) \
-            if comparison[acronym][data_set][other_label] < comparison[acronym][data_set][auto_label] \
+            else ((auto_label, other_label)
+            if comparison[acronym][data_set][other_label] < comparison[acronym][data_set][auto_label]
             else ('draw', 'draw'))
         summary[acronym][winner] += 1
 
@@ -95,7 +94,7 @@ def merge_results(auto_results, other_results, other_label):
             else:
                 comparison[acronym][data_set]['score'] = score - 1
 
-    new_summary = {other_label: 0, auto_label: 0, 'draw': 0}
+    new_summary = {auto_label: 0, other_label: 0, 'draw': 0}
     for algorithm, results in summary.items():
         for category, result in summary[algorithm].items():
             new_summary[category] += summary[algorithm][category]
@@ -104,15 +103,15 @@ def merge_results(auto_results, other_results, other_label):
 
     return comparison, summary
 
-def merge_all_results(auto_results, first_results, second_results, first_label, second_label):
+def merge_all_results(auto_results, first_results, second_results, first_label, second_label, filtered_data_sets):
     auto_label = 'auto'
     comparison = {}
     summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
         summary[acronym] = {
-            first_label: 0,
             auto_label: 0,
+            first_label: 0,
             second_label: 0,
             auto_label[0] + first_label[0]: 0,
             first_label[0] + second_label[0]: 0,
@@ -120,7 +119,7 @@ def merge_all_results(auto_results, first_results, second_results, first_label, 
             'draw': 0}
         comparison[acronym] = {}
 
-    for key, value in first_results.items():
+    for key in filtered_data_sets:
         acronym = key.split('_')[0]
         data_set = key.split('_')[1]
 
@@ -194,8 +193,8 @@ def merge_all_results(auto_results, first_results, second_results, first_label, 
 
 
     new_summary = {
-        first_label: 0,
         auto_label: 0,
+        first_label: 0,
         second_label: 0,
         auto_label[0] + first_label[0]: 0,
         first_label[0] + second_label[0]: 0,
