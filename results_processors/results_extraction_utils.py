@@ -52,41 +52,50 @@ def load_results(input_path, filtered_datasets):
 
     return results_map
 
-def merge_results(first_results, second_results, first_label, second_label):
+def merge_results(auto_results, other_results, other_label):
+    auto_label = 'auto'
     comparison = {}
     summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
-        summary[acronym] = {first_label: 0, second_label: 0, 'draw': 0}
+        summary[acronym] = {other_label: 0, auto_label: 0, 'draw': 0}
         comparison[acronym] = {}
 
-    for key, value in first_results.items():
+    for key, value in other_results.items():
         acronym = key.split('_')[0]
         data_set = key.split('_')[1]
 
-        if first_results[key]['baseline_score'] != second_results[key]['baseline_score']:
-            print('Different baseline scores: ' + str(key) + ' ' + str(first_results[key]['baseline_score']) + ' ' + str(second_results[key]['baseline_score']))
+        baseline_score = auto_results[key]['baseline_score']
+        if other_results[key]['baseline_score'] != auto_results[key]['baseline_score']:
+            print('Different baseline scores: ' + str(key) + ' ' + str(auto_results[key]['baseline_score']) + ' ' + str(other_results[key]['baseline_score']))
+            baseline_score = auto_results[key]['baseline_score'] if auto_results[key]['baseline_score'] > other_results[key]['baseline_score'] else other_results[key]['baseline_score']
 
-        comparison[acronym][data_set] = {first_label: first_results[key]['accuracy'],
-                                         second_label: second_results[key]['accuracy'],
-                                         'baseline': first_results[key]['baseline_score']}
-        winner, loser = (first_label, second_label) if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] else ((second_label, first_label) if comparison[acronym][data_set][first_label] < comparison[acronym][data_set][second_label] else ('draw', 'draw'))
+        comparison[acronym][data_set] = {auto_label: auto_results[key]['accuracy'],
+                                         other_label: other_results[key]['accuracy'],
+                                         'baseline': baseline_score}
+        winner, loser = (other_label, auto_label) \
+            if comparison[acronym][data_set][other_label] > comparison[acronym][data_set][auto_label] \
+            else ((auto_label, other_label) \
+            if comparison[acronym][data_set][other_label] < comparison[acronym][data_set][auto_label] \
+            else ('draw', 'draw'))
         summary[acronym][winner] += 1
 
         if winner == 'draw':
-            winner, loser = first_label, second_label
+            winner, loser = auto_label, other_label
 
         if comparison[acronym][data_set][loser] == comparison[acronym][data_set]['baseline']:
-            comparison[acronym][data_set]['score'] = 'nan'
+            comparison[acronym][data_set]['score'] = 'zero denominator'
+        elif comparison[acronym][data_set][loser] < comparison[acronym][data_set]['baseline']:
+            comparison[acronym][data_set]['score'] = 'negative denominator'
         else:
             score = (comparison[acronym][data_set][winner] - comparison[acronym][data_set]['baseline']) / (comparison[acronym][data_set][loser] - comparison[acronym][data_set]['baseline'])
 
-            if winner == first_label:
+            if winner != auto_label:
                 comparison[acronym][data_set]['score'] = 1 - score
             else:
                 comparison[acronym][data_set]['score'] = score - 1
 
-    new_summary = {first_label: 0, second_label: 0, 'draw': 0}
+    new_summary = {other_label: 0, auto_label: 0, 'draw': 0}
     for algorithm, results in summary.items():
         for category, result in summary[algorithm].items():
             new_summary[category] += summary[algorithm][category]
@@ -95,18 +104,19 @@ def merge_results(first_results, second_results, first_label, second_label):
 
     return comparison, summary
 
-def merge_all_results(first_results, second_results, third_results, first_label, second_label, third_label):
+def merge_all_results(auto_results, first_results, second_results, first_label, second_label):
+    auto_label = 'auto'
     comparison = {}
     summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
         summary[acronym] = {
             first_label: 0,
+            auto_label: 0,
             second_label: 0,
-            third_label: 0,
+            auto_label[0] + first_label[0]: 0,
             first_label[0] + second_label[0]: 0,
-            first_label[0] + third_label[0]: 0,
-            second_label[0] + third_label[0]: 0,
+            auto_label[0] + second_label[0]: 0,
             'draw': 0}
         comparison[acronym] = {}
 
@@ -114,44 +124,83 @@ def merge_all_results(first_results, second_results, third_results, first_label,
         acronym = key.split('_')[0]
         data_set = key.split('_')[1]
 
-        if first_results[key]['baseline_score'] != second_results[key]['baseline_score'] or \
-                first_results[key]['baseline_score'] != third_results[key]['baseline_score'] or \
-                second_results[key]['baseline_score'] != third_results[key]['baseline_score']:
-            print('Different baseline scores: ' + str(key) + ' ' + str(first_results[key]['baseline_score']) + ' ' + str(second_results[key]['baseline_score']) + ' ' + str(third_results[key]['baseline_score']))
+        baseline_score = auto_results[key]['baseline_score']
+        if first_results[key]['baseline_score'] != auto_results[key]['baseline_score'] or \
+                first_results[key]['baseline_score'] != second_results[key]['baseline_score'] or \
+                auto_results[key]['baseline_score'] != second_results[key]['baseline_score']:
+            print('Different baseline scores: ' + str(key) + ' ' + str(auto_results[key]['baseline_score']) + ' ' + str(first_results[key]['baseline_score']) + ' ' + str(second_results[key]['baseline_score']))
+            baseline_score = first_results[key]['baseline_score'] \
+            if first_results[key]['baseline_score'] >= auto_results[key]['baseline_score'] \
+               and first_results[key]['baseline_score'] >= second_results[key]['baseline_score'] \
+            else (auto_results[key]['baseline_score'] \
+            if auto_results[key]['baseline_score'] >= first_results[key]['baseline_score'] \
+               and auto_results[key]['baseline_score'] >= second_results[key]['baseline_score'] \
+            else second_results[key]['baseline_score'])
 
-        comparison[acronym][data_set] = {first_label: first_results[key]['accuracy'],
+        comparison[acronym][data_set] = {auto_label: auto_results[key]['accuracy'],
+                                         first_label: first_results[key]['accuracy'],
                                          second_label: second_results[key]['accuracy'],
-                                         third_label: third_results[key]['accuracy'],
-                                         'baseline': first_results[key]['baseline_score']}
+                                         'baseline': baseline_score}
         winner = first_label \
-            if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] \
-               and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][third_label] \
-            else (second_label
-        if comparison[acronym][data_set][second_label] > comparison[acronym][data_set][first_label]
-           and comparison[acronym][data_set][second_label] > comparison[acronym][data_set][third_label]
-        else (third_label
-        if comparison[acronym][data_set][third_label] > comparison[acronym][data_set][first_label]
-           and comparison[acronym][data_set][third_label] > comparison[acronym][data_set][second_label]
-        else (first_label[0] + second_label[0]
-        if comparison[acronym][data_set][first_label] == comparison[acronym][data_set][second_label]
-           and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][third_label]
-        else (first_label[0] + third_label[0]
-        if comparison[acronym][data_set][first_label] == comparison[acronym][data_set][third_label]
-           and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label]
-        else (second_label[0] + third_label[0]
-        if comparison[acronym][data_set][second_label] == comparison[acronym][data_set][third_label]
-           and comparison[acronym][data_set][second_label] > comparison[acronym][data_set][first_label]
-        else 'draw')))))
+            if comparison[acronym][data_set][first_label] > comparison[acronym][data_set][auto_label] \
+               and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] \
+            else (auto_label \
+            if comparison[acronym][data_set][auto_label] > comparison[acronym][data_set][first_label] \
+               and comparison[acronym][data_set][auto_label] > comparison[acronym][data_set][second_label] \
+            else (second_label \
+            if comparison[acronym][data_set][second_label] > comparison[acronym][data_set][first_label] \
+               and comparison[acronym][data_set][second_label] > comparison[acronym][data_set][auto_label] \
+            else (auto_label[0] + first_label[0] \
+            if comparison[acronym][data_set][first_label] == comparison[acronym][data_set][auto_label]\
+               and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][second_label] \
+            else (first_label[0] + second_label[0] \
+            if comparison[acronym][data_set][first_label] == comparison[acronym][data_set][second_label] \
+               and comparison[acronym][data_set][first_label] > comparison[acronym][data_set][auto_label] \
+            else (auto_label[0] + second_label[0] \
+            if comparison[acronym][data_set][auto_label] == comparison[acronym][data_set][second_label] \
+               and comparison[acronym][data_set][auto_label] > comparison[acronym][data_set][first_label] \
+            else 'draw')))))
         summary[acronym][winner] += 1
 
+        if winner != auto_label and winner != first_label and winner != second_label:
+            if winner == auto_label[0] + first_label[0]:
+                winner, loser = auto_label, second_label
+            elif winner == first_label[0] + second_label[0]:
+                winner, loser = first_label, auto_label
+            elif winner == auto_label[0] + second_label[0]:
+                winner, loser = auto_label, first_label
+            else:
+                winner, loser = auto_label, first_label
+        else:
+            loser = first_label \
+                if comparison[acronym][data_set][first_label] < comparison[acronym][data_set][auto_label] \
+                   and comparison[acronym][data_set][first_label] < comparison[acronym][data_set][second_label] \
+                else (auto_label \
+                if comparison[acronym][data_set][auto_label] < comparison[acronym][data_set][first_label] \
+                   and comparison[acronym][data_set][auto_label] < comparison[acronym][data_set][second_label] \
+                else second_label)
+        
+        if comparison[acronym][data_set][loser] == comparison[acronym][data_set]['baseline']:
+            comparison[acronym][data_set]['score'] = 'zero denominator'
+        elif comparison[acronym][data_set][loser] < comparison[acronym][data_set]['baseline']:
+            comparison[acronym][data_set]['score'] = 'negative denominator'
+        else:
+            score = (comparison[acronym][data_set][winner] - comparison[acronym][data_set]['baseline']) / (comparison[acronym][data_set][loser] - comparison[acronym][data_set]['baseline'])
+
+            if winner != auto_label:
+                comparison[acronym][data_set]['score'] = 1 - score
+            else:
+                comparison[acronym][data_set]['score'] = score - 1
+
+
     new_summary = {
-            first_label: 0,
-            second_label: 0,
-            third_label: 0,
-            first_label[0] + second_label[0]: 0,
-            first_label[0] + third_label[0]: 0,
-            second_label[0] + third_label[0]: 0,
-            'draw': 0}
+        first_label: 0,
+        auto_label: 0,
+        second_label: 0,
+        auto_label[0] + first_label[0]: 0,
+        first_label[0] + second_label[0]: 0,
+        auto_label[0] + second_label[0]: 0,
+        'draw': 0}
     for algorithm, results in summary.items():
         for category, result in summary[algorithm].items():
             new_summary[category] += summary[algorithm][category]

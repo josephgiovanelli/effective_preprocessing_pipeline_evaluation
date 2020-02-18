@@ -29,7 +29,7 @@ def main():
     print('quemy_auto')
     print()
 
-    comparison, summary = merge_results(quemy_results, auto_results, 'quemy', 'auto')
+    comparison, summary = merge_results(auto_results, quemy_results, 'quemy')
     save_comparison(comparison, create_directory(result_path, "quemy_auto"))
     save_summary(summary, create_directory(result_path, "quemy_auto"))
 
@@ -38,7 +38,7 @@ def main():
     print('auto_pseudoexhaustive')
     print()
 
-    comparison, summary = merge_results(auto_results, pseudo_exhaustive_results, 'auto', 'pseudo_exhaustive')
+    comparison, summary = merge_results(auto_results, pseudo_exhaustive_results, 'pseudo_exhaustive')
     save_comparison(comparison, create_directory(result_path, "auto_pseudoexhaustive"))
     save_summary(summary, create_directory(result_path, "auto_pseudoexhaustive"))
 
@@ -47,7 +47,7 @@ def main():
     print('all_together')
     print()
 
-    comparison, summary = merge_all_results(quemy_results, auto_results, pseudo_exhaustive_results, 'quemy', 'auto', 'pseudo_exhaustive')
+    comparison, summary = merge_all_results(auto_results, quemy_results, pseudo_exhaustive_results, 'quemy', 'pseudo_exhaustive')
     save_comparison(comparison, create_directory(result_path, "all_together"))
     save_summary(summary, create_directory(result_path, "all_together"))
 
