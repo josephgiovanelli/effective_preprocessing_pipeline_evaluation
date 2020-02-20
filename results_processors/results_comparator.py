@@ -3,7 +3,7 @@ from __future__ import print_function
 import argparse
 
 from results_processors.results_extraction_utils import get_filtered_datasets, load_results, merge_results, \
-    save_comparison, save_summary, merge_all_results
+    save_comparison, save_summary, merge_all_results, check_discretization
 from results_processors.utils import create_directory
 
 def parse_args():
@@ -49,8 +49,10 @@ def main():
     print()
 
     comparison, summary = merge_results(auto_results, quemy_results, 'quemy', filtered_data_sets)
+    summary_discretization = check_discretization(auto_results, quemy_results, 'quemy', filtered_data_sets)
     save_comparison(comparison, create_directory(result_path, "quemy_auto"))
     save_summary(summary, create_directory(result_path, "quemy_auto"))
+    print(summary_discretization)
 
     print()
     print()

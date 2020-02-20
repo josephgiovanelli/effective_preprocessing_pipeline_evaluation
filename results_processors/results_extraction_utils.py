@@ -32,6 +32,12 @@ def load_results(input_path, filtered_data_sets):
                 data = json.load(json_file)
                 accuracy = data['context']['best_config']['score'] // 0.0001 / 100
                 pipeline = str(data['context']['best_config']['pipeline']).replace(' ', '').replace(',', ' ')
+                prototype = str(data['pipeline']).replace(' ', '')
+                discretize = 'not_in_prototype' \
+                    if not('discretize' in prototype) \
+                    else ('not_in_pipeline'
+                if data['context']['best_config']['pipeline']['discretize'][0] == 'discretize_NoneType'
+                else 'in_pipeline')
                 num_iterations = data['context']['iteration'] + 1
                 best_iteration = data['context']['best_config']['iteration'] + 1
                 baseline_score = data['context']['baseline_score'] // 0.0001 / 100
@@ -48,6 +54,8 @@ def load_results(input_path, filtered_data_sets):
         results_map[acronym]['num_iterations'] = num_iterations
         results_map[acronym]['best_iteration'] = best_iteration
         results_map[acronym]['pipeline'] = pipeline
+        results_map[acronym]['prototype'] = prototype
+        results_map[acronym]['discretize'] = discretize
 
     return results_map
 
@@ -102,6 +110,40 @@ def merge_results(auto_results, other_results, other_label, filtered_data_sets):
     summary['summary'] = new_summary
 
     return comparison, summary
+
+def check_discretization(auto_results, other_results, other_label, filtered_data_sets):
+    auto_label = 'auto'
+    comparison = {}
+    summary = {}
+    for algorithm in algorithms:
+        acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
+        summary[acronym] = {'not_in_prototype': 0, 'not_in_pipeline': 0, 'in_pipeline': 0}
+        comparison[acronym] = {}
+
+    for key in filtered_data_sets:
+        acronym = key.split('_')[0]
+        data_set = key.split('_')[1]
+
+        comparison[acronym][data_set] = {auto_label: auto_results[key]['accuracy'],
+                                         other_label: other_results[key]['accuracy']}
+        winner, loser = (other_label, auto_label) \
+            if comparison[acronym][data_set][other_label] > comparison[acronym][data_set][auto_label] \
+            else ((auto_label, other_label)
+            if comparison[acronym][data_set][other_label] < comparison[acronym][data_set][auto_label]
+            else ('draw', 'draw'))
+
+        if winner == auto_label:
+            summary[acronym][auto_results[key]['discretize']] += 1
+
+
+    new_summary = {'not_in_prototype': 0, 'not_in_pipeline': 0, 'in_pipeline': 0}
+    for algorithm, results in summary.items():
+        for category, result in summary[algorithm].items():
+            new_summary[category] += summary[algorithm][category]
+
+    summary['summary'] = new_summary
+
+    return summary
 
 def merge_all_results(auto_results, first_results, second_results, first_label, second_label, filtered_data_sets):
     auto_label = 'auto'
