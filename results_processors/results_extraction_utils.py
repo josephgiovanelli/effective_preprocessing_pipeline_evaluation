@@ -61,13 +61,17 @@ def load_results(input_path, filtered_data_sets, algorithm_comparison = False):
 
     return results_map
 
-def merge_results(auto_results, other_results, other_label, filtered_data_sets):
+def merge_results(auto_results, other_results, other_label, filtered_data_sets, algorithm_comparison = False):
     auto_label = 'auto'
     comparison = {}
     summary = {}
+    if algorithm_comparison:
+        data_set_summary = {}
     for algorithm in algorithms:
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
         summary[acronym] = {auto_label: 0, other_label: 0, 'draw': 0}
+        if algorithm_comparison:
+            data_set_summary[acronym] = []
         comparison[acronym] = {}
 
     for key in filtered_data_sets:
@@ -88,6 +92,10 @@ def merge_results(auto_results, other_results, other_label, filtered_data_sets):
             if comparison[acronym][data_set][other_label] < comparison[acronym][data_set][auto_label]
             else ('draw', 'draw'))
         summary[acronym][winner] += 1
+
+        if algorithm_comparison:
+            if winner == other_label:
+                data_set_summary[acronym].append(data_set)
 
         if winner == 'draw':
             winner, loser = auto_label, other_label
@@ -110,6 +118,12 @@ def merge_results(auto_results, other_results, other_label, filtered_data_sets):
             new_summary[category] += summary[algorithm][category]
 
     summary['summary'] = new_summary
+
+    if algorithm_comparison:
+        for key, value in data_set_summary.items():
+            data_set_summary[key] = [int(i) for i in value]
+            data_set_summary[key].sort()
+        print(data_set_summary)
 
     return comparison, summary
 

@@ -43,7 +43,7 @@ def main():
     auto_results = load_results(input_auto, filtered_data_sets, algorithm_comparison = True)
     algorithm_results = load_results(input_algorithm, filtered_data_sets, algorithm_comparison = True)
 
-    comparison, summary = merge_results(auto_results, algorithm_results, 'algorithm', filtered_data_sets)
+    comparison, summary = merge_results(auto_results, algorithm_results, 'algorithm', filtered_data_sets, algorithm_comparison = True)
     save_comparison(comparison, create_directory(result_path, "algorithm_auto"))
     save_summary(summary, create_directory(result_path, "algorithm_auto"))
 
