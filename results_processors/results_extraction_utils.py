@@ -20,7 +20,7 @@ def get_filtered_datasets():
     df = df['did']
     return df.values.flatten().tolist()
 
-def load_results(input_path, filtered_data_sets):
+def load_results(input_path, filtered_data_sets, algorithm_comparison = False):
     #exceptions = ['nb_37', 'rf_1510', 'rf_1497', 'knn_1489', 'rf_1462', 'nb_46', 'knn_23517', 'rf_1063', 'nb_23517',
     #              'rf_40701', 'nb_1501', 'rf_44', 'nb_1497', 'knn_1486', 'rf_28']
     results_map = {}
@@ -31,13 +31,14 @@ def load_results(input_path, filtered_data_sets):
             with open(os.path.join(input_path, acronym + '.json')) as json_file:
                 data = json.load(json_file)
                 accuracy = data['context']['best_config']['score'] // 0.0001 / 100
-                pipeline = str(data['context']['best_config']['pipeline']).replace(' ', '').replace(',', ' ')
-                prototype = str(data['pipeline']).replace(' ', '')
-                discretize = 'not_in_prototype' \
-                    if not('discretize' in prototype) \
-                    else ('not_in_pipeline'
-                if data['context']['best_config']['pipeline']['discretize'][0] == 'discretize_NoneType'
-                else 'in_pipeline')
+                if not algorithm_comparison:
+                    pipeline = str(data['context']['best_config']['pipeline']).replace(' ', '').replace(',', ' ')
+                    prototype = str(data['pipeline']).replace(' ', '')
+                    discretize = 'not_in_prototype' \
+                        if not('discretize' in prototype) \
+                        else ('not_in_pipeline'
+                    if data['context']['best_config']['pipeline']['discretize'][0] == 'discretize_NoneType'
+                    else 'in_pipeline')
                 num_iterations = data['context']['iteration'] + 1
                 best_iteration = data['context']['best_config']['iteration'] + 1
                 baseline_score = data['context']['baseline_score'] // 0.0001 / 100
@@ -53,9 +54,10 @@ def load_results(input_path, filtered_data_sets):
         results_map[acronym]['baseline_score'] = baseline_score
         results_map[acronym]['num_iterations'] = num_iterations
         results_map[acronym]['best_iteration'] = best_iteration
-        results_map[acronym]['pipeline'] = pipeline
-        results_map[acronym]['prototype'] = prototype
-        results_map[acronym]['discretize'] = discretize
+        if not algorithm_comparison:
+            results_map[acronym]['pipeline'] = pipeline
+            results_map[acronym]['prototype'] = prototype
+            results_map[acronym]['discretize'] = discretize
 
     return results_map
 

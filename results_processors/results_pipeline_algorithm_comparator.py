@@ -40,8 +40,8 @@ def main():
                           'knn_3', 'knn_469', 'nb_1068', 'nb_458', 'nb_1480']
 
 
-    auto_results = load_results(input_auto, filtered_data_sets)
-    algorithm_results = load_results(input_algorithm, filtered_data_sets)
+    auto_results = load_results(input_auto, filtered_data_sets, algorithm_comparison = True)
+    algorithm_results = load_results(input_algorithm, filtered_data_sets, algorithm_comparison = True)
 
     comparison, summary = merge_results(auto_results, algorithm_results, 'algorithm', filtered_data_sets)
     save_comparison(comparison, create_directory(result_path, "algorithm_auto"))
