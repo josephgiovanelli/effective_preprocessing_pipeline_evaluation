@@ -35,8 +35,11 @@ def main(args):
     scenario = scenarios.load(args.scenario)
     scenario = cli.apply_scenario_customization(scenario, args.customize)
     config = scenarios.to_config(scenario)
-    config['time'] /= args.factor
-    print(config['time'])
+    if args.factor != 0:
+        config['time'] /= args.factor
+    else:
+        config['time'] = 400
+    print("config time: " + str(config['time']))
     print('SCENARIO:\n {}'.format(json.dumps(scenario, indent=4, sort_keys=True)))
 
     PrototypeSingleton.getInstance().setPipeline(args.pipeline)
