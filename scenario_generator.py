@@ -34,7 +34,7 @@ base = OrderedDict([
     ('title', 'Random Forest on Wine with Iterative policy'),
     ('setup', {
         'policy': 'iterative',
-        'runtime': 200,
+        'runtime': 400,
         'algorithm': 'RandomForest',
         'dataset': 'wine'
     }),
@@ -99,7 +99,7 @@ for id in get_filtered_datasets():
             '''
             runtime = scenario['setup']['runtime']
             step = policies_config['split']['step_pipeline']
-            scenario['policy']['step_pipeline'] = runtime
+            scenario['policy']['step_pipeline'] = 200
             path = os.path.join(SCENARIO_PATH, '{}_{}.yaml'.format(b, id))
             __write_scenario(path, scenario)
 

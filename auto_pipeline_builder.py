@@ -96,16 +96,26 @@ def build_pipeline(features_rebalance_order, discretize_rebalance_order):
 
     return pipelines
 
-def pseudo_exhaustive_pipelines():
+def framework_table_pipelines():
+    from itertools import permutations
+
+    all_perm = permutations(['impute', 'encode', 'normalize', 'discretize', 'features', 'rebalance'])
+    valid_perm = []
     pipelines = []
 
-    pipelines.append("impute encode normalize features rebalance")
-    pipelines.append("impute encode normalize rebalance features")
+    for i in list(all_perm):
+        if i.index('encode') < i.index('normalize') and \
+                i.index('discretize') > i.index('encode') and \
+                i.index('impute') < i.index('encode') and \
+                i.index('impute') < i.index('discretize') and \
+                i.index('rebalance') > i.index('encode') and \
+                i.index('rebalance') > i.index('impute') and \
+                i.index('features') > i.index('encode') and \
+                i.index('features') > i.index('impute'):
+            valid_perm.append(i)
 
-    pipeline = "impute encode "
-    pipelines.append(pipeline + "rebalance discretize features")
-    pipelines.append(pipeline + "discretize rebalance features")
-    pipelines.append(pipeline + "discretize features rebalance")
+    for i in list(valid_perm):
+        pipelines.append(' '.join(i))
 
     return pipelines
 
