@@ -62,7 +62,7 @@ def load_results(input_path, filtered_data_sets, algorithm_comparison = False):
     return results_map
 
 def merge_results(auto_results, other_results, other_label, filtered_data_sets, algorithm_comparison = False):
-    auto_label = 'auto'
+    auto_label = 'pipeline_algorithm'
     comparison = {}
     summary = {}
     if algorithm_comparison:
