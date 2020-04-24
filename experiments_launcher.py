@@ -169,7 +169,7 @@ with tqdm(total=total_runtime) as pbar:
             except:
                 accuracy = 0
 
-            data_to_write['people'].append({
+            data_to_write['pipelines'].append({
                 'index': str(i),
                 'pipeline': pipeline,
                 'accuracy': accuracy
