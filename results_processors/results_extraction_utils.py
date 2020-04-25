@@ -168,19 +168,23 @@ def plot_comparison(comparison, result_path):
         print(a_percentages)
         print(pa_percentages)
 
+        data = {'dataset': keys, 'a_percentages': a_percentages, 'pa_percentages': pa_percentages}
+        df = pd.DataFrame.from_dict(data)
+        df = df.sort_values(by=['pa_percentages', 'a_percentages'])
+
         plt.rcdefaults()
 
-        plt.bar(keys, pa_percentages, label='pipeline_algorithm')
-        plt.bar(keys, a_percentages, bottom=pa_percentages, label='algorithm')
+        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pipeline_algorithm')
+        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='algorithm')
 
         plt.axhline(y=50, color='#aaaaaa', linestyle='--')
 
-        plt.xlabel('Datasets')
+        plt.xlabel('Data-set IDs')
         #plt.xticks(fontsize=3, rotation=90)
         plt.xticks(fontsize=6, rotation=90)
-        plt.ylabel('Scores')
-        plt.yticks(np.linspace(0, 100, 11))
-        plt.title('Scores by Datasets')
+        plt.ylabel('Normalized improvement percentage')
+        plt.yticks(ticks=np.linspace(0, 100, 11), labels=['{}%'.format(x) for x in np.linspace(0, 100, 11)])
+        plt.title('Comparison of approaches improvements for {}'.format(algorithm))
         plt.legend(loc="upper left")
 
         fig = plt.gcf()
