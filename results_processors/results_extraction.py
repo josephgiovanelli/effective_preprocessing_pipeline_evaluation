@@ -3,7 +3,7 @@ from __future__ import print_function
 import argparse
 import itertools
 
-from results_processors.results_extraction_utils import get_filtered_datasets, load_results, declare_winners, \
+from results_processors.results_extraction_utils import get_filtered_datasets, load_results_pipelines, declare_winners, \
     summarize_winners, save_summary
 from results_processors.utils import create_directory
 
@@ -21,7 +21,7 @@ def main():
     filtered_data_sets = ['_'.join(i) for i in list(itertools.product(["knn", "nb", "rf"], [str(integer) for integer in get_filtered_datasets()]))]
     #print(filtered_data_sets)
 
-    results = load_results(input, filtered_data_sets)
+    results = load_results_pipelines(input, filtered_data_sets)
     #print(results)
 
     winners = declare_winners(results)
