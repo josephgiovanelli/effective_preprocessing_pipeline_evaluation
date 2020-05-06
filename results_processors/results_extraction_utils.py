@@ -55,10 +55,12 @@ def load_results_auto(input_path, filtered_data_sets):
             with open(os.path.join(input_path, acronym + '.json')) as json_file:
                 data = json.load(json_file)
                 accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                baseline = data['context']['baseline_score'] // 0.0001 / 100
         else:
             accuracy = 0
+            baseline = 0
 
-        results_map[algorithm][data_set] = accuracy
+        results_map[algorithm][data_set] = (accuracy, baseline)
 
     return results_map
 
@@ -127,6 +129,8 @@ def save_comparison(results_pipelines, results_auto, result_path):
         os.remove('comparison.csv')
     for algorithm, value in results_pipelines.items():
         with open(os.path.join(result_path, '{}.csv'.format(algorithm)), 'w') as out:
-            out.write('dataset,exhaustive,pseudo-exhaustive\n')
+            out.write('dataset,exhaustive,pseudo-exhaustive,baseline,score\n')
             for dataset, accuracy in value.items():
-                out.write(str(dataset) + ',' + str(accuracy) + ',' + str(results_auto[algorithm][dataset]) + '\n')
+                score = 0 if (accuracy - results_auto[algorithm][dataset][1]) == 0 else (results_auto[algorithm][dataset][0] - results_auto[algorithm][dataset][1]) / (accuracy - results_auto[algorithm][dataset][1])
+                out.write(str(dataset) + ',' + str(accuracy) + ',' + str(results_auto[algorithm][dataset][0]) + ',' +
+                          str(results_auto[algorithm][dataset][1]) + ',' + str(score) + '\n')
