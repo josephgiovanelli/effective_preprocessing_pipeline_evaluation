@@ -174,8 +174,8 @@ def plot_comparison(comparison, result_path):
 
         plt.rcdefaults()
 
-        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pipeline_algorithm')
-        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='algorithm')
+        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
+        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
 
         plt.axhline(y=50, color='#aaaaaa', linestyle='--')
 
