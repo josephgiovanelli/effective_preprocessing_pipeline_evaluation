@@ -3,6 +3,7 @@ import os
 import json
 import string
 
+import numpy as np
 import pandas as pd
 
 from os import listdir
@@ -139,7 +140,7 @@ def save_summary(summary_map, result_path):
 
         plt.xlabel('Prototype IDs')
         plt.ylabel('Number of data-sets for which a prototype\nachieved the best performance')
-        plt.ylim(0, 10)
+        plt.yticks(np.arange(0, 10, 1))
         plt.title('Comparison of the goodness of the prototypes for {}'.format(algorithm.upper()))
 
         fig = plt.gcf()
@@ -153,7 +154,7 @@ def save_summary(summary_map, result_path):
 
     plt.xlabel('Prototype IDs')
     plt.ylabel('Number of times for which a prototype\nachieved the best performance')
-    plt.ylim(0, 20)
+    plt.yticks(np.arange(0, 20, 2))
     plt.title('Comparison of the goodness of the prototypes (all data-sets and algorithms together)')
 
     fig = plt.gcf()
@@ -168,9 +169,28 @@ def save_comparison(results_pipelines, results_auto, result_path):
     if os.path.exists('comparison.csv'):
         os.remove('comparison.csv')
     for algorithm, value in results_pipelines.items():
+        plot_results = {}
         with open(os.path.join(result_path, '{}.csv'.format(algorithm)), 'w') as out:
             out.write('dataset,exhaustive,pseudo-exhaustive,baseline,score\n')
             for dataset, accuracy in value.items():
                 score = 0 if (accuracy - results_auto[algorithm][dataset][1]) == 0 else (results_auto[algorithm][dataset][0] - results_auto[algorithm][dataset][1]) / (accuracy - results_auto[algorithm][dataset][1])
                 out.write(str(dataset) + ',' + str(accuracy) + ',' + str(results_auto[algorithm][dataset][0]) + ',' +
                           str(results_auto[algorithm][dataset][1]) + ',' + str(score) + '\n')
+                plot_results[dataset] = score
+
+        plt.rcdefaults()
+        plt.bar(plot_results.keys(), plot_results.values())
+
+        plt.axhline(y=1.0, color='#aaaaaa', linestyle='--')
+
+        plt.xlabel('Dataset IDs')
+        plt.xticks(fontsize=6, rotation=90)
+        plt.ylabel('Score')
+        plt.ylim(0.0, 1.1)
+        plt.title('Evaluation of the prototype building through the proposed precedence for {}'.format(algorithm.upper()))
+
+        fig = plt.gcf()
+        fig.set_size_inches(10, 5, forward=True)
+        fig.savefig(os.path.join(result_path, '{}.pdf'.format(algorithm)))
+
+        plt.clf()
