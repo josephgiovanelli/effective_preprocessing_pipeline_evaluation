@@ -7,8 +7,9 @@ import pandas as pd
 from os import listdir
 from os.path import isfile, join
 
-from commons import benchmark_suite, algorithms
+from matplotlib import gridspec
 
+from commons import benchmark_suite, algorithms
 
 def get_filtered_datasets():
     df = pd.read_csv('meta_features/simple-meta-features.csv')
@@ -154,18 +155,19 @@ def plot_comparison(comparison, result_path):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    fig, axs = plt.subplots(1, 3)
+    gs = gridspec.GridSpec(4, 4)
+    fig = plt.figure()
 
-    SMALL_SIZE = 17
-    MEDIUM_SIZE = 20
-    BIGGER_SIZE = 21
+    SMALL_SIZE = 8
+    MEDIUM_SIZE = 17
+    BIGGER_SIZE = 22
 
     plt.rc('font', size=MEDIUM_SIZE)  # controls default text sizes
-    plt.rc('legend', fontsize=MEDIUM_SIZE)  # legend fontsize
-    plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
-    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
-    plt.rc('xtick', labelsize=BIGGER_SIZE)  # fontsize of the tick labels
-    plt.rc('ytick', labelsize=BIGGER_SIZE)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=BIGGER_SIZE)  # legend fontsize
+    plt.rc('axes', titlesize=BIGGER_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=MEDIUM_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=MEDIUM_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=MEDIUM_SIZE)  # fontsize of the tick labels
     plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
 
 
@@ -188,25 +190,33 @@ def plot_comparison(comparison, result_path):
         df = pd.DataFrame.from_dict(data)
         df = df.sort_values(by=['a_percentages', 'pa_percentages'])
 
-        axs[i].bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
-        axs[i].bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
+        if i == 0:
+            plt.subplot2grid((4, 4), (0, 0), colspan=2, rowspan=2)
+        if i == 1:
+            plt.subplot2grid((4, 4), (0, 2), colspan=2, rowspan=2)
+        if i == 2:
+            plt.subplot2grid((4, 4), (2, 1), colspan=2, rowspan=2)
 
-        axs[i].axhline(y=50, color='#aaaaaa', linestyle='--')
+        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
+        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
 
-        axs[i].set(xlabel='Data sets', ylabel='Normalized improvement percentage')
-        axs[i].set_yticks(np.linspace(0, 100, 11))
-        axs[i].set_yticklabels(['{}%'.format(x) for x in np.linspace(0, 100, 11)])
-        axs[i].set_xticks([])
-        axs[i].set_title('Approaches comparison for {}'.format(acronym.upper()))
+        plt.axhline(y=50, color='#aaaaaa', linestyle='--')
+
+        plt.xlabel('Data sets')
+        plt.ylabel('Normalized improvement\npercentage')
+        plt.yticks(ticks=np.linspace(0, 100, 11), labels=['{}%'.format(x) for x in np.linspace(0, 100, 11)])
+        plt.xticks(ticks=[])
+        plt.title('Approaches comparison for {}'.format(acronym.upper()))
+
 
 
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
-    lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol=2, bbox_to_anchor=(0.5, 0.9))
-    text = fig.text(-0.2, 20.15, "", transform=axs[2].transAxes)
-    fig.set_size_inches(20, 5, forward=True)
+    lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol=2, bbox_to_anchor=(0.5, 0.98))
+    text = fig.text(-0.2, 20.15, "")
+    fig.set_size_inches(20, 10, forward=True)
     fig.tight_layout(w_pad=2.0)
-    fig.savefig(os.path.join(result_path, 'evaluation1.pdf'), bbox_extra_artists=(lgd, text), bbox_inches='tight')
+    fig.savefig(os.path.join(result_path, 'evaluation1_2.pdf'), bbox_extra_artists=(lgd, text), bbox_inches='tight')
 
 
     plt.clf()
