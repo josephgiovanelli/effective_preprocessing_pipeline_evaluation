@@ -124,44 +124,37 @@ def save_summary(summary_map, result_path):
     if os.path.exists('summary.csv'):
         os.remove('summary.csv')
     total = {}
-    algorithm_map = {'rf': 'RandomForest', 'nb': 'NaiveBayes', 'knn': 'KNearestNeighbors'}
+    algorithm_map = {'nb': 'NaiveBayes', 'knn': 'KNearestNeighbors', 'rf': 'RandomForest'}
+    winners = {}
+    pipelines = []
 
     for algorithm, value in summary_map.items():
         pipelines = []
-        winners = []
         with open(os.path.join(result_path, '{}.csv'.format(algorithm)), 'w') as out:
             out.write('pipeline,winners\n')
+            winners_temp = []
             for pipeline, winner in value.items():
                 out.write(str(pipeline) + ',' + str(winner) + '\n')
                 pipelines.append(str(pipeline))
-                winners.append(int(winner))
+                winners_temp.append(int(winner))
                 total[str(pipeline)] = winner if not(str(pipeline) in total.keys()) else total[str(pipeline)] + winner
-
-        plt.rcdefaults()
-        plt.bar(pipelines, winners)
-
-        plt.xlabel('Prototype IDs')
-        plt.ylabel('Number of data-sets for which a prototype\nachieved the best performance')
-        plt.yticks(np.arange(0, 10, 1))
-        plt.title('Comparison of the goodness of the prototypes for {}'.format(algorithm_map[algorithm]))
-
-        fig = plt.gcf()
-        fig.set_size_inches(10, 5, forward=True)
-        fig.savefig(os.path.join(result_path, '{}.pdf'.format(algorithm)))
-
-        plt.clf()
+            winners[algorithm] = winners_temp[1:]
+            pipelines = pipelines[1:]
 
     plt.rcdefaults()
-    plt.bar(total.keys(), total.values())
+    plt.bar(pipelines, winners['nb'], label=algorithm_map['nb'])
+    plt.bar(pipelines, winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'])
+    plt.bar(pipelines, winners['rf'], bottom=[winners['nb'][j] +  winners['knn'][j] for j in range(len(winners['knn']))], label=algorithm_map['rf'])
 
     plt.xlabel('Prototype IDs')
-    plt.ylabel('Number of times for which a prototype\nachieved the best performance')
+    plt.ylabel('Number of data-sets for which a prototype\nachieved the best performance')
     plt.yticks(np.arange(0, 20, 2))
-    plt.title('Comparison of the goodness of the prototypes (all data-sets and algorithms together)')
+    plt.title('Comparison of the goodness of the prototypes')
+    plt.legend()
 
     fig = plt.gcf()
     fig.set_size_inches(10, 5, forward=True)
-    fig.savefig(os.path.join(result_path, 'summary.pdf'))
+    fig.savefig(os.path.join(result_path, 'evaluation2.pdf'))
 
     plt.clf()
 
@@ -170,31 +163,36 @@ def save_summary(summary_map, result_path):
 def save_comparison(results_pipelines, results_auto, result_path):
     if os.path.exists('comparison.csv'):
         os.remove('comparison.csv')
-    algorithm_map = {'rf': 'RandomForest', 'nb': 'NaiveBayes', 'knn': 'KNearestNeighbors'}
+    algorithm_map = {'nb': 'NaiveBayes', 'knn': 'KNearestNeighbors', 'rf': 'RandomForest'}
+    plot_results = {}
 
     for algorithm, value in results_pipelines.items():
-        plot_results = {}
+        plot_results[algorithm] = {}
         with open(os.path.join(result_path, '{}.csv'.format(algorithm)), 'w') as out:
             out.write('dataset,exhaustive,pseudo-exhaustive,baseline,score\n')
             for dataset, accuracy in value.items():
                 score = 0 if (accuracy - results_auto[algorithm][dataset][1]) == 0 else (results_auto[algorithm][dataset][0] - results_auto[algorithm][dataset][1]) / (accuracy - results_auto[algorithm][dataset][1])
                 out.write(str(dataset) + ',' + str(accuracy) + ',' + str(results_auto[algorithm][dataset][0]) + ',' +
                           str(results_auto[algorithm][dataset][1]) + ',' + str(score) + '\n')
-                plot_results[dataset] = score
+                plot_results[algorithm][dataset] = score
 
-        plt.rcdefaults()
-        plt.bar(plot_results.keys(), plot_results.values())
+    plt.rcdefaults()
+    plt.axhline(y=1.0, color='#aaaaaa', linestyle='--')
 
-        plt.axhline(y=1.0, color='#aaaaaa', linestyle='--')
+    plt.boxplot([[value for value in plot_results['nb'].values() if value != 0],
+                 [value for value in plot_results['knn'].values() if value != 0],
+                 [value for value in plot_results['rf'].values() if value != 0]])
 
-        plt.xlabel('Dataset IDs')
-        plt.xticks(fontsize=6, rotation=90)
-        plt.ylabel('Score')
-        plt.ylim(0.0, 1.1)
-        plt.title('Evaluation of the prototype building through the proposed precedence for {}'.format(algorithm_map[algorithm]))
 
-        fig = plt.gcf()
-        fig.set_size_inches(10, 5, forward=True)
-        fig.savefig(os.path.join(result_path, '{}.pdf'.format(algorithm)))
+    plt.xlabel('Algorithms')
+    plt.xticks([1, 2, 3], ['NaiveBayes', 'KNearestNeighbors', 'RandomForest'])
+    plt.ylabel('Score')
+    plt.yticks(np.linspace(0, 1.1, 12))
+    plt.ylim(0.0, 1.1)
+    plt.title('Evaluation of the prototype building through the proposed precedence')
 
-        plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(10, 5, forward=True)
+    fig.savefig(os.path.join(result_path, 'evaluation3.pdf'))
+
+    plt.clf()
