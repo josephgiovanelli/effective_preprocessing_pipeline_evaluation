@@ -154,7 +154,23 @@ def plot_comparison(comparison, result_path):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    for algorithm in algorithms:
+    fig, axs = plt.subplots(1, 3)
+
+    SMALL_SIZE = 17
+    MEDIUM_SIZE = 20
+    BIGGER_SIZE = 21
+
+    plt.rc('font', size=MEDIUM_SIZE)  # controls default text sizes
+    plt.rc('legend', fontsize=MEDIUM_SIZE)  # legend fontsize
+    plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=BIGGER_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=BIGGER_SIZE)  # fontsize of the tick labels
+    plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
+
+
+    for i in range(0, 3):
+        algorithm = algorithms[i]
         acronym = ''.join([a for a in algorithm if a.isupper()]).lower()
 
         keys = []
@@ -170,28 +186,30 @@ def plot_comparison(comparison, result_path):
 
         data = {'dataset': keys, 'a_percentages': a_percentages, 'pa_percentages': pa_percentages}
         df = pd.DataFrame.from_dict(data)
-        df = df.sort_values(by=['pa_percentages', 'a_percentages'])
+        df = df.sort_values(by=['a_percentages', 'pa_percentages'])
 
-        plt.rcdefaults()
+        axs[i].bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
+        axs[i].bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
 
-        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
-        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
+        axs[i].axhline(y=50, color='#aaaaaa', linestyle='--')
 
-        plt.axhline(y=50, color='#aaaaaa', linestyle='--')
+        axs[i].set(xlabel='Data sets', ylabel='Normalized improvement percentage')
+        axs[i].set_yticks(np.linspace(0, 100, 11))
+        axs[i].set_yticklabels(['{}%'.format(x) for x in np.linspace(0, 100, 11)])
+        axs[i].set_xticks([])
+        axs[i].set_title('Approaches comparison for {}'.format(acronym.upper()))
 
-        plt.xlabel('Data-set IDs')
-        #plt.xticks(fontsize=3, rotation=90)
-        plt.xticks(fontsize=6, rotation=90)
-        plt.ylabel('Normalized improvement percentage')
-        plt.yticks(ticks=np.linspace(0, 100, 11), labels=['{}%'.format(x) for x in np.linspace(0, 100, 11)])
-        plt.title('Comparison of approaches improvements for {}'.format(algorithm))
-        plt.legend(loc="upper left")
 
-        fig = plt.gcf()
-        fig.set_size_inches(10, 5, forward=True)
-        fig.savefig(os.path.join(result_path, '{}.pdf'.format(acronym)))
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol=2, bbox_to_anchor=(0.5, 0.9))
+    text = fig.text(-0.2, 20.15, "", transform=axs[2].transAxes)
+    fig.set_size_inches(20, 5, forward=True)
+    fig.tight_layout(w_pad=2.0)
+    fig.savefig(os.path.join(result_path, 'evaluation1.pdf'), bbox_extra_artists=(lgd, text), bbox_inches='tight')
 
-        plt.clf()
+
+    plt.clf()
 
 
 
