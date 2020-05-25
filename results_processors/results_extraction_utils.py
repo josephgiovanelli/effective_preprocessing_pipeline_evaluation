@@ -197,8 +197,8 @@ def plot_comparison(comparison, result_path):
         if i == 2:
             plt.subplot2grid((4, 4), (2, 1), colspan=2, rowspan=2)
 
-        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
-        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
+        plt.bar(df['dataset'].tolist(), df['pa_percentages'].tolist(), label='Pre-processing and hyper-parameter optimization', color = (1.0, 0.5, 0.15, 1.0))
+        plt.bar(df['dataset'].tolist(), df['a_percentages'].tolist(), bottom=df['pa_percentages'].tolist(), label='Hyper-parameter optimization', color = (0.15, 0.5, 0.7, 1.0))
 
         plt.axhline(y=50, color='#aaaaaa', linestyle='--')
 
@@ -206,7 +206,7 @@ def plot_comparison(comparison, result_path):
         plt.ylabel('Normalized improvement\npercentage')
         plt.yticks(ticks=np.linspace(0, 100, 11), labels=['{}%'.format(x) for x in np.linspace(0, 100, 11)])
         plt.xticks(ticks=[])
-        plt.title('Approaches comparison for {}'.format(acronym.upper()))
+        plt.title('Approaches comparison for {}'.format(algorithm))
 
 
 
