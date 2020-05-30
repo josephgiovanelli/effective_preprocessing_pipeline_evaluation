@@ -124,8 +124,8 @@ def save_summary(summary_map, result_path):
     if os.path.exists('summary.csv'):
         os.remove('summary.csv')
     total = {}
-    algorithm_map = {'nb': 'NaiveBayes', 'knn': 'KNearestNeighbors', 'rf': 'RandomForest'}
-    winners = {}
+    algorithm_map = {'nb': 'NB', 'knn': 'KNN', 'rf': 'RF'}
+    win = {}
     pipelines = []
 
     for algorithm, value in summary_map.items():
@@ -138,18 +138,22 @@ def save_summary(summary_map, result_path):
                 pipelines.append(str(pipeline))
                 winners_temp.append(int(winner))
                 total[str(pipeline)] = winner if not(str(pipeline) in total.keys()) else total[str(pipeline)] + winner
-            winners[algorithm] = winners_temp[1:]
+            win[algorithm] = winners_temp[1:]
             pipelines = pipelines[1:]
 
+    winners = {'pipelines': pipelines, 'nb': [e / 168 * 100 for e in win['nb']], 'knn': [e / 168 * 100 for e in win['knn']], 'rf': [e / 168 * 100 for e in win['rf']]}
+    winners['total'] = [winners['nb'][j] +  winners['knn'][j] +  winners['rf'][j] for j in range(len(winners['knn']))]
+    winners = pd.DataFrame.from_dict(winners)
+    #winners = winners.sort_values(by=['total'], ascending=False)
     plt.rcdefaults()
-    plt.bar(pipelines, winners['nb'], label=algorithm_map['nb'])
-    plt.bar(pipelines, winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'])
-    plt.bar(pipelines, winners['rf'], bottom=[winners['nb'][j] +  winners['knn'][j] for j in range(len(winners['knn']))], label=algorithm_map['rf'])
+    plt.bar(winners['pipelines'], winners['nb'], label=algorithm_map['nb'], color="gold")
+    plt.bar(winners['pipelines'], winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'], color="darkturquoise")
+    plt.bar(winners['pipelines'], winners['rf'], bottom=winners['nb'] +  winners['knn'], label=algorithm_map['rf'], color="violet")
 
     plt.xlabel('Prototype IDs')
-    plt.ylabel('Number of data-sets for which a prototype\nachieved the best performance')
-    plt.yticks(np.arange(0, 20, 2))
-    plt.title('Comparison of the goodness of the prototypes')
+    plt.ylabel('Percentage of cases for which a prototype\nachieved the best performance')
+    plt.yticks(ticks=np.linspace(0, 12, 13), labels=['{}%'.format(int(x)) for x in np.linspace(0, 12, 13)])
+    #plt.title('Comparison of the goodness of the prototypes')
     plt.legend()
 
     fig = plt.gcf()
@@ -185,11 +189,11 @@ def save_comparison(results_pipelines, results_auto, result_path):
 
 
     plt.xlabel('Algorithms')
-    plt.xticks([1, 2, 3], ['NaiveBayes', 'KNearestNeighbors', 'RandomForest'])
-    plt.ylabel('Score')
+    plt.xticks([1, 2, 3], ['NB', 'KNN', 'RF'])
+    plt.ylabel('Normalized distance')
     plt.yticks(np.linspace(0, 1.1, 12))
     plt.ylim(0.0, 1.1)
-    plt.title('Evaluation of the prototype building through the proposed precedence')
+    #plt.title('Evaluation of the prototype building through the proposed precedence')
 
     fig = plt.gcf()
     fig.set_size_inches(10, 5, forward=True)
