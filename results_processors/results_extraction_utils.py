@@ -146,7 +146,7 @@ def save_summary(summary_map, result_path):
     winners = pd.DataFrame.from_dict(winners)
     #winners = winners.sort_values(by=['total'], ascending=False)
     plt.rcdefaults()
-    plt.bar(winners['pipelines'], winners['nb'], label=algorithm_map['nb'], color="gold")
+    plt.bar(winners['pipelines'], winners['nb'], label=algorithm_map['nb'], color="lightcoral")
     plt.bar(winners['pipelines'], winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'], color="darkturquoise")
     plt.bar(winners['pipelines'], winners['rf'], bottom=winners['nb'] +  winners['knn'], label=algorithm_map['rf'], color="violet")
 
