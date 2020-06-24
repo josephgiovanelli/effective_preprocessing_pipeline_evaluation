@@ -1,30 +1,34 @@
 import json
 import os
-
 import shutil
-
 import yaml
-from six import iteritems
 import subprocess
 import datetime
+import argparse
 
+from six import iteritems
 from prettytable import PrettyTable
 from tqdm import tqdm
-
-import argparse
-import h2o
-
-from experiment.utils import scenarios as scenarios_util
 from results_processors.utils import create_directory
 from auto_pipeline_builder import pseudo_exhaustive_pipelines
 
+from experiment.utils import scenarios as scenarios_util
+
+
 parser = argparse.ArgumentParser(description="Automated Machine Learning Workflow creation and configuration")
-parser.add_argument("-p", "--pipeline", nargs="?", type=str, required=True, help="kind of pipeline to execute")
-parser.add_argument("-r", "--result_path", nargs="?", type=str, required=True, help="path where put the results")
+parser.add_argument("-mode", "--mode", nargs="?", type=str, required=True, help="algorithm or preprocessing_algorithm")
+
 args = parser.parse_args()
 
-SCENARIO_PATH = './scenarios/'
-RESULT_PATH = args.result_path
+RESULT_PATH = "./scenarios/"
+RESULT_PATH = create_directory(RESULT_PATH, "evaluation")
+if args.mode == "algorithm":
+    SCENARIO_PATH = "./scenarios/algorithm"
+elif args.mode == "preprocessing_algorithm":
+    SCENARIO_PATH = "./scenarios/preprocessing_algorithm"
+else:
+    raise Exception('unvalid mode option')
+RESULT_PATH = create_directory(RESULT_PATH, args.mode)
 GLOBAL_SEED = 42
 
 def yes_or_no(question):
@@ -129,74 +133,92 @@ with tqdm(total=total_runtime) as pbar:
         current_scenario = scenarios_util.load(os.path.join(SCENARIO_PATH, info['path']))
         config = scenarios_util.to_config(current_scenario)
 
+        if args.mode == "preprocessing_algorithm":
+            pipelines = pseudo_exhaustive_pipelines()
+            results = []
 
-        pipelines = pseudo_exhaustive_pipelines()
+            for i in range(0, len(pipelines)):
+                pipeline = pipelines[i]
+                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                    os.path.join(SCENARIO_PATH, info['path']),
+                    GLOBAL_SEED,
+                    pipeline,
+                    RESULT_PATH,
+                    len(pipelines))
+                with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
+                          "a") as log_out:
+                    with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
+                              "a") as log_err:
+                        max_time = 1000
+                        try:
+                            process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
+                            process.wait(timeout=max_time)
+                        except:
+                            kill(process.pid)
+                            print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
 
-        result_path = create_directory(RESULT_PATH, "pseudo-exhaustive")
+                try:
+                    os.rename(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario)),
+                              os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i))))
 
-        results = []
-
-        for i in range(0, len(pipelines)):
-            pipeline = pipelines[i]
-            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
-                os.path.join(SCENARIO_PATH, info['path']),
-                GLOBAL_SEED,
-                pipeline,
-                result_path,
-                len(pipelines))
-            with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
-                      "a") as log_out:
-                with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
-                          "a") as log_err:
-                    max_time = 1000
-                    try:
-                        process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
-                        process.wait(timeout=max_time)
-                    except:
-                        kill(process.pid)
-                        print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+                    with open(
+                            os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
+                        data = json.load(json_file)
+                        accuracy = data['context']['best_config']['score'] // 0.0001 / 100
+                        results.append(accuracy)
+                except:
+                    accuracy = 0
+                    results.append(accuracy)
+                print(results)
 
             try:
-                os.rename(os.path.join(result_path, '{}.json'.format(base_scenario)),
-                          os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i))))
+                max_i = 0
+                for i in range(1, len(pipelines)):
+                    if results[i] > results[max_i]:
+                        max_i = i
 
-                with open(
-                        os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
-                    data = json.load(json_file)
-                    accuracy = data['context']['best_config']['score'] // 0.0001 / 100
-                    results.append(accuracy)
+                src_dir = os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(max_i)))
+                dst_dir = os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_best_pipeline"))
+                shutil.copy(src_dir, dst_dir)
             except:
-                accuracy = 0
-                results.append(accuracy)
-            print(results)
-
-        try:
-            max_i = 0
-            for i in range(1, len(pipelines)):
-                if results[i] > results[max_i]:
-                    max_i = i
-
-            src_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(max_i)))
-            dst_dir = os.path.join(result_path, '{}.json'.format(base_scenario + "_best_pipeline"))
-            shutil.copy(src_dir, dst_dir)
-        except:
-            with open(os.path.join(result_path, '{}.txt'.format(base_scenario + "_best_pipeline")), "a") as log_out:
-                log_out.write("trying to get the best pipeline: no available result")
+                with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario + "_best_pipeline")), "a") as log_out:
+                    log_out.write("trying to get the best pipeline: no available result")
 
 
-        try:
-            with open(os.path.join(result_path, '{}.json'.format(base_scenario + "_best_pipeline"))) as json_file:
-                data = json.load(json_file)
-                pipeline = data['pipeline']
-            print(pipeline)
-            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+            try:
+                with open(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_best_pipeline"))) as json_file:
+                    data = json.load(json_file)
+                    pipeline = data['pipeline']
+                print(pipeline)
+                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                    os.path.join(SCENARIO_PATH, info['path']),
+                    GLOBAL_SEED,
+                    ' '.join(pipeline),
+                    RESULT_PATH,
+                    0)
+                with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
+                    with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
+                        max_time = 1000
+                        try:
+                            process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
+                            process.wait(timeout=max_time)
+                        except:
+                            kill(process.pid)
+                            print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+                            log_out.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+                            log_err.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
+            except:
+                with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario)), "a") as log_out:
+                    log_out.write("\ntrying to run best pipeline and algorithm: could not find a pipeline")
+        else:
+            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {}'.format(
                 os.path.join(SCENARIO_PATH, info['path']),
                 GLOBAL_SEED,
-                ' '.join(pipeline),
-                result_path,
+                ' ',
+                RESULT_PATH,
                 0)
-            with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
-                with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
+            with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
+                with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
                     max_time = 1000
                     try:
                         process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
@@ -204,10 +226,6 @@ with tqdm(total=total_runtime) as pbar:
                     except:
                         kill(process.pid)
                         print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
-                        log_out.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
-                        log_err.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
-        except:
-            with open(os.path.join(result_path, '{}.txt'.format(base_scenario)), "a") as log_out:
-                log_out.write("\ntrying to run best pipeline and algorithm: could not find a pipeline")
+
 
         pbar.update(info['runtime'])

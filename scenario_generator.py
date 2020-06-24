@@ -1,14 +1,22 @@
 import os
 import copy
 import re
-from collections import OrderedDict
+import argparse
 
-import openml
 import pandas as pd
 
 from commons import benchmark_suite, algorithms
+from collections import OrderedDict
+from results_processors.utils import create_directory
+
+
+parser = argparse.ArgumentParser(description="Automated Machine Learning Workflow creation and configuration")
+parser.add_argument("-mode", "--mode", nargs="?", type=str, required=True, help="algorithm or preprocessing_algorithm")
+args = parser.parse_args()
+
 
 SCENARIO_PATH = './scenarios/'
+SCENARIO_PATH = create_directory(SCENARIO_PATH, args.mode)
 
 policies = ['split']
 
@@ -34,7 +42,7 @@ base = OrderedDict([
     ('title', 'Random Forest on Wine with Iterative policy'),
     ('setup', {
         'policy': 'iterative',
-        'runtime': 200,
+        'runtime': 400,
         'algorithm': 'RandomForest',
         'dataset': 'wine'
     }),
@@ -99,7 +107,14 @@ for id in get_filtered_datasets():
             '''
             runtime = scenario['setup']['runtime']
             step = policies_config['split']['step_pipeline']
-            scenario['policy']['step_pipeline'] = runtime
+            if args.mode == "algorithm":
+                scenario['policy']['step_pipeline'] = 0
+            elif args.mode == "preprocessing_algorithm":
+                runtime = int(runtime / 2)
+                scenario['policy']['step_pipeline'] = runtime
+            else:
+                raise Exception('unvalid mode option')
+
             path = os.path.join(SCENARIO_PATH, '{}_{}.yaml'.format(b, id))
             __write_scenario(path, scenario)
 

@@ -1,3 +1,6 @@
 #!/bin/bash
 
-python3 experiments_launcher.py -p pseudo-exhaustive -r results/pipeline_algorithm
+python scenario_generator.py -path -mode algorithm
+python scenario_generator.py -path -mode preprocessing_algorithm
+python experiments_launcher.py -mode algorithm
+python experiments_launcher.py -mode preprocessing_algorithm
