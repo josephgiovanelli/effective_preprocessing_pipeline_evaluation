@@ -111,6 +111,7 @@ for id in get_filtered_datasets():
                 scenario['policy']['step_pipeline'] = 0
             elif args.mode == "preprocessing_algorithm":
                 runtime = int(runtime / 2)
+                scenario['setup']['runtime'] = runtime
                 scenario['policy']['step_pipeline'] = runtime
             else:
                 raise Exception('unvalid mode option')

@@ -1,23 +1,14 @@
 from __future__ import print_function
 
-import argparse
 import itertools
 
-from results_processors.results_extraction_utils import get_filtered_datasets, load_results, merge_results, \
+from results_extraction_utils import get_filtered_datasets, load_results, merge_results, \
     save_comparison, save_summary, plot_comparison
-from results_processors.utils import create_directory
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Automated Machine Learning Workflow creation and configuration")
-    parser.add_argument("-iau", "--input_auto", nargs="?", type=str, required=True, help="path of first input")
-    parser.add_argument("-ial", "--input_algorithm", nargs="?", type=str, required=True, help="path of second input")
-    parser.add_argument("-o", "--output", nargs="?", type=str, required=True, help="path where put the results")
-    args = parser.parse_args()
-    return args.input_auto, args.input_algorithm, args.output
+from utils import create_directory
 
 def main():
     # configure environment
-    input_auto, input_algorithm, result_path = parse_args()
+    input_auto, input_algorithm, result_path = "../results/evaluation/preprocessing_algorithm", "../results/evaluation/algorithm", "../results/evaluation"
     result_path = create_directory(result_path, "summary")
     filtered_data_sets = ['_'.join(i) for i in list(itertools.product(["knn", "nb", "rf"], [str(integer) for integer in get_filtered_datasets()]))]
 

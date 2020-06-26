@@ -1,7 +1,5 @@
-import collections
 import os
 import json
-import openml
 import pandas as pd
 
 from os import listdir
@@ -9,7 +7,12 @@ from os.path import isfile, join
 
 from matplotlib import gridspec
 
-from commons import benchmark_suite, algorithms
+algorithms = ['NaiveBayes', 'KNearestNeighbors', 'RandomForest']
+benchmark_suite = [3, 6, 11, 12, 14, 15, 16, 18, 22, 23, 28, 29, 31, 32, 37, 44, 46, 50, 54, 151, 182, 188, 38, 307,
+                       300, 458, 469, 554, 1049, 1050, 1053, 1063, 1067, 1068, 1590, 4134, 1510, 1489, 1494, 1497, 1501,
+                       1480, 1485, 1486, 1487, 1468, 1475, 1462, 1464, 4534, 6332, 1461, 4538, 1478, 23381, 40499,
+                       40668, 40966, 40982, 40994, 40983, 40975, 40984, 40979, 40996, 41027, 23517, 40923, 40927, 40978,
+                       40670, 40701]
 
 def get_filtered_datasets():
     df = pd.read_csv('meta_features/simple-meta-features.csv')
@@ -216,7 +219,7 @@ def plot_comparison(comparison, result_path):
     text = fig.text(-0.2, 20.15, "")
     fig.set_size_inches(20, 10, forward=True)
     fig.tight_layout(w_pad=2.0)
-    fig.savefig(os.path.join(result_path, 'evaluation1_2.pdf'), bbox_extra_artists=(lgd, text), bbox_inches='tight')
+    fig.savefig(os.path.join(result_path, 'evaluation.pdf'), bbox_extra_artists=(lgd, text), bbox_inches='tight')
 
 
     plt.clf()

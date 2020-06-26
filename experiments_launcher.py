@@ -20,7 +20,7 @@ parser.add_argument("-mode", "--mode", nargs="?", type=str, required=True, help=
 
 args = parser.parse_args()
 
-RESULT_PATH = "./scenarios/"
+RESULT_PATH = "./results/"
 RESULT_PATH = create_directory(RESULT_PATH, "evaluation")
 if args.mode == "algorithm":
     SCENARIO_PATH = "./scenarios/algorithm"
@@ -210,11 +210,11 @@ with tqdm(total=total_runtime) as pbar:
             except:
                 with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario)), "a") as log_out:
                     log_out.write("\ntrying to run best pipeline and algorithm: could not find a pipeline")
-        else:
-            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {}'.format(
+        elif args.mode == "algorithm":
+            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
                 os.path.join(SCENARIO_PATH, info['path']),
                 GLOBAL_SEED,
-                ' ',
+                'impute encode',
                 RESULT_PATH,
                 0)
             with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
@@ -226,6 +226,7 @@ with tqdm(total=total_runtime) as pbar:
                     except:
                         kill(process.pid)
                         print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
-
+        else:
+            raise Exception('unvalid mode option')
 
         pbar.update(info['runtime'])
