@@ -21,11 +21,11 @@ parser.add_argument("-mode", "--mode", nargs="?", type=str, required=True, help=
 args = parser.parse_args()
 
 RESULT_PATH = "./results/"
-RESULT_PATH = create_directory(RESULT_PATH, "evaluation")
+RESULT_PATH = create_directory(RESULT_PATH, "evaluation3")
 if args.mode == "algorithm":
-    SCENARIO_PATH = "./scenarios/algorithm"
+    SCENARIO_PATH = "./scenarios/evaluation3/algorithm"
 elif args.mode == "preprocessing_algorithm":
-    SCENARIO_PATH = "./scenarios/preprocessing_algorithm"
+    SCENARIO_PATH = "./scenarios/evaluation3/preprocessing_algorithm"
 else:
     raise Exception('unvalid mode option')
 RESULT_PATH = create_directory(RESULT_PATH, args.mode)

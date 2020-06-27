@@ -8,7 +8,7 @@ from utils import create_directory
 
 def main():
     # configure environment
-    input_auto, input_algorithm, result_path = "../results/evaluation/preprocessing_algorithm", "../results/evaluation/algorithm", "../results/evaluation"
+    input_auto, input_algorithm, result_path = "../results/evaluation3/preprocessing_algorithm", "../results/evaluation3/algorithm", "../results/evaluation3"
     result_path = create_directory(result_path, "summary")
     filtered_data_sets = ['_'.join(i) for i in list(itertools.product(["knn", "nb", "rf"], [str(integer) for integer in get_filtered_datasets()]))]
 

@@ -16,7 +16,7 @@ args = parser.parse_args()
 
 
 SCENARIO_PATH = './scenarios/'
-SCENARIO_PATH = create_directory(SCENARIO_PATH, args.mode)
+SCENARIO_PATH = create_directory(create_directory(SCENARIO_PATH, "evaluation3"), args.mode)
 
 policies = ['split']
 
