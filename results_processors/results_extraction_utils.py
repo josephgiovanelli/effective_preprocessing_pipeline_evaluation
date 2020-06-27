@@ -79,7 +79,7 @@ def merge_results(auto_results, other_results, other_label, filtered_data_sets):
 
         baseline_score = auto_results[key]['baseline_score']
         if auto_results[key]['baseline_score'] != other_results[key]['baseline_score']:
-            print('Different baseline scores: ' + str(key) + ' ' + str(auto_results[key]['baseline_score']) + ' ' + str(other_results[key]['baseline_score']))
+            #print('Different baseline scores: ' + str(key) + ' ' + str(auto_results[key]['baseline_score']) + ' ' + str(other_results[key]['baseline_score']))
             baseline_score = auto_results[key]['baseline_score'] if auto_results[key]['baseline_score'] > other_results[key]['baseline_score'] else other_results[key]['baseline_score']
 
         comparison[acronym][data_set] = {auto_label: auto_results[key]['accuracy'],
@@ -186,8 +186,8 @@ def plot_comparison(comparison, result_path):
             keys.append(key)
             a_percentages.append(comparison[acronym][key]['a_percentage'] // 0.0001 / 100)
             pa_percentages.append(comparison[acronym][key]['pa_percentage'] // 0.0001 / 100)
-        print(a_percentages)
-        print(pa_percentages)
+        #print(a_percentages)
+        #print(pa_percentages)
 
         data = {'dataset': keys, 'a_percentages': a_percentages, 'pa_percentages': pa_percentages}
         df = pd.DataFrame.from_dict(data)
