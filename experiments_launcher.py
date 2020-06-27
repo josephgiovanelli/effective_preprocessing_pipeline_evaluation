@@ -12,19 +12,15 @@ from prettytable import PrettyTable
 from tqdm import tqdm
 
 import argparse
-import h2o
 
 from experiment.utils import scenarios as scenarios_util
 from results_processors.utils import create_directory
+
 from auto_pipeline_builder import framework_table_pipelines
 
-parser = argparse.ArgumentParser(description="Automated Machine Learning Workflow creation and configuration")
-parser.add_argument("-p", "--pipeline", nargs="?", type=str, required=True, help="kind of pipeline to execute")
-parser.add_argument("-r", "--result_path", nargs="?", type=str, required=True, help="path where put the results")
-args = parser.parse_args()
-
-SCENARIO_PATH = './scenarios/'
-RESULT_PATH = args.result_path
+SCENARIO_PATH = "./scenarios/evaluation1"
+RESULT_PATH = "./results"
+RESULT_PATH = create_directory(RESULT_PATH, "evaluation1")
 GLOBAL_SEED = 42
 
 def yes_or_no(question):

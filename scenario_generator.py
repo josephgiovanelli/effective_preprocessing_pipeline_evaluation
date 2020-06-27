@@ -1,14 +1,17 @@
 import os
 import copy
 import re
-from collections import OrderedDict
 
-import openml
 import pandas as pd
 
+from collections import OrderedDict
 from commons import benchmark_suite, algorithms
+from results_processors.utils import create_directory
+
 
 SCENARIO_PATH = './scenarios/'
+SCENARIO_PATH = create_directory(SCENARIO_PATH, "evaluation1")
+
 
 policies = ['split']
 

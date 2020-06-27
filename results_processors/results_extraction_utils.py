@@ -11,8 +11,12 @@ from os.path import isfile, join
 
 import matplotlib.pyplot as plt
 
-from commons import benchmark_suite, algorithms
-
+algorithms = ['NaiveBayes', 'KNearestNeighbors', 'RandomForest']
+benchmark_suite = [3, 6, 11, 12, 14, 15, 16, 18, 22, 23, 28, 29, 31, 32, 37, 44, 46, 50, 54, 151, 182, 188, 38, 307,
+                       300, 458, 469, 554, 1049, 1050, 1053, 1063, 1067, 1068, 1590, 4134, 1510, 1489, 1494, 1497, 1501,
+                       1480, 1485, 1486, 1487, 1468, 1475, 1462, 1464, 4534, 6332, 1461, 4538, 1478, 23381, 40499,
+                       40668, 40966, 40982, 40994, 40983, 40975, 40984, 40979, 40996, 41027, 23517, 40923, 40927, 40978,
+                       40670, 40701]
 
 def get_filtered_datasets():
     df = pd.read_csv('meta_features/simple-meta-features.csv')
@@ -158,7 +162,7 @@ def save_summary(summary_map, result_path):
 
     fig = plt.gcf()
     fig.set_size_inches(10, 5, forward=True)
-    fig.savefig(os.path.join(result_path, 'evaluation2.pdf'))
+    fig.savefig(os.path.join(result_path, 'evaluation1.pdf'))
 
     plt.clf()
 
@@ -197,6 +201,6 @@ def save_comparison(results_pipelines, results_auto, result_path):
 
     fig = plt.gcf()
     fig.set_size_inches(10, 5, forward=True)
-    fig.savefig(os.path.join(result_path, 'evaluation3.pdf'))
+    fig.savefig(os.path.join(result_path, 'evaluation2.pdf'))
 
     plt.clf()
