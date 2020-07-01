@@ -35,10 +35,15 @@ def main(args):
     scenario = scenarios.load(args.scenario)
     scenario = cli.apply_scenario_customization(scenario, args.customize)
     config = scenarios.to_config(scenario)
-    if args.factor != 0:
-        config['time'] /= args.factor
+    if args.mode == "preprocessing_algorithm":
+        config['time'] /= args.num_pipelines
     else:
-        config['time'] = 400
+        if args.num_pipelines == 0:
+            config['time'] = 400
+        else:
+            config['time'] = 240
+            config['step_pipeline'] = 40
+
     print("config time: " + str(config['time']))
     print('SCENARIO:\n {}'.format(json.dumps(scenario, indent=4, sort_keys=True)))
 

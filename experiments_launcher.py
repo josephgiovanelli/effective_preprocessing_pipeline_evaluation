@@ -139,11 +139,12 @@ with tqdm(total=total_runtime) as pbar:
 
             for i in range(0, len(pipelines)):
                 pipeline = pipelines[i]
-                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -m {} -np {}'.format(
                     os.path.join(SCENARIO_PATH, info['path']),
                     GLOBAL_SEED,
                     pipeline,
                     RESULT_PATH,
+                    "preprocessing_algorithm",
                     len(pipelines))
                 with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
                           "a") as log_out:
@@ -190,12 +191,13 @@ with tqdm(total=total_runtime) as pbar:
                     data = json.load(json_file)
                     pipeline = data['pipeline']
                 print(pipeline)
-                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+                cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -m {} -np {}'.format(
                     os.path.join(SCENARIO_PATH, info['path']),
                     GLOBAL_SEED,
                     ' '.join(pipeline),
                     RESULT_PATH,
-                    0)
+                    "algorithm",
+                    len(pipelines))
                 with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
                     with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
                         max_time = 1000
@@ -211,11 +213,12 @@ with tqdm(total=total_runtime) as pbar:
                 with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario)), "a") as log_out:
                     log_out.write("\ntrying to run best pipeline and algorithm: could not find a pipeline")
         elif args.mode == "algorithm":
-            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -f {}'.format(
+            cmd = 'python3 ./main.py -s {} -c control.seed={} -p {} -r {} -m {} -np {}'.format(
                 os.path.join(SCENARIO_PATH, info['path']),
                 GLOBAL_SEED,
                 'impute encode',
                 RESULT_PATH,
+                "algorithm",
                 0)
             with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
                 with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:

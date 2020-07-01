@@ -21,7 +21,10 @@ Automated Machine Learning Workflow creation and configuration
     parser.add_argument("-r", "--result_path", nargs="?", type=str, required=True,
                         help="path where put the results")
 
-    parser.add_argument("-f", "--factor", nargs="?", type=int, required=True,
+    parser.add_argument("-m", "--mode", nargs="?", type=str, required=True,
+                        help="algorithm or preprocessing_algorithm")
+
+    parser.add_argument("-np", "--num_pipelines", nargs="?", type=int, required=True,
                         help="number of pipelines to split the budget")
 
     parser.add_argument("-v", "--verbosity", action="count", help="increase output verbosity", default=0)
