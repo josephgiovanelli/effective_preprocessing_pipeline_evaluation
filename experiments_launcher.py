@@ -128,8 +128,6 @@ with tqdm(total=total_runtime) as pbar:
 
         pipelines = framework_table_pipelines()
 
-        result_path = create_directory(RESULT_PATH, "pseudo-exhaustive")
-
         data_to_write = {}
         data_to_write['pipelines'] = []
         results = []
@@ -140,11 +138,11 @@ with tqdm(total=total_runtime) as pbar:
                 os.path.join(SCENARIO_PATH, info['path']),
                 GLOBAL_SEED,
                 pipeline,
-                result_path,
+                RESULT_PATH,
                 len(pipelines))
-            with open(os.path.join(result_path, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
+            with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
                       "a") as log_out:
-                with open(os.path.join(result_path, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
+                with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
                           "a") as log_err:
                     max_time = 1000
                     try:
@@ -155,10 +153,10 @@ with tqdm(total=total_runtime) as pbar:
                         print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
 
             try:
-                os.rename(os.path.join(result_path, '{}.json'.format(base_scenario)),
-                          os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i))))
+                os.rename(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario)),
+                          os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i))))
 
-                with open(os.path.join(result_path, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
+                with open(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
                     data = json.load(json_file)
                     accuracy = data['context']['best_config']['score'] // 0.0001 / 100
                     results.append(accuracy)
@@ -173,7 +171,7 @@ with tqdm(total=total_runtime) as pbar:
             print(results)
 
         try:
-            with open(os.path.join(result_path, '{}.json'.format(base_scenario)), 'w') as outfile:
+            with open(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario)), 'w') as outfile:
                 json.dump(data_to_write, outfile)
         except:
             print("I didn't manage to write")
