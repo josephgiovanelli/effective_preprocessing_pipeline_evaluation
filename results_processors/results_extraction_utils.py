@@ -148,20 +148,32 @@ def save_summary(summary_map, result_path):
     winners = {'pipelines': pipelines, 'nb': [e / 168 * 100 for e in win['nb']], 'knn': [e / 168 * 100 for e in win['knn']], 'rf': [e / 168 * 100 for e in win['rf']]}
     winners['total'] = [winners['nb'][j] +  winners['knn'][j] +  winners['rf'][j] for j in range(len(winners['knn']))]
     winners = pd.DataFrame.from_dict(winners)
-    #winners = winners.sort_values(by=['total'], ascending=False)
-    plt.rcdefaults()
-    plt.bar(winners['pipelines'], winners['nb'], label=algorithm_map['nb'], color="lightcoral")
-    plt.bar(winners['pipelines'], winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'], color="darkturquoise")
-    plt.bar(winners['pipelines'], winners['rf'], bottom=winners['nb'] +  winners['knn'], label=algorithm_map['rf'], color="violet")
+    #winners = winn ers.sort_values(by=['total'], ascending=False)
 
-    plt.xlabel('Prototype IDs')
-    plt.ylabel('Percentage of cases for which a prototype\nachieved the best performance')
-    plt.yticks(ticks=np.linspace(0, 12, 13), labels=['{}%'.format(int(x)) for x in np.linspace(0, 12, 13)])
+    SMALL_SIZE = 14
+    MEDIUM_SIZE = 16
+    BIGGER_SIZE = 18
+
+    plt.rc('font', size=MEDIUM_SIZE)  # controls default text sizes
+    plt.rc('axes', titlesize=BIGGER_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=SMALL_SIZE)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=MEDIUM_SIZE)  # legend fontsize
+    plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
+
+
+    plt.bar([str(int(a) + 1) for a in winners['pipelines']], winners['nb'], label=algorithm_map['nb'], color="lightcoral")
+    plt.bar([str(int(a) + 1) for a in winners['pipelines']], winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'], color="darkturquoise")
+    plt.bar([str(int(a) + 1) for a in winners['pipelines']], winners['rf'], bottom=winners['nb'] +  winners['knn'], label=algorithm_map['rf'], color="violet")
+
+    plt.xlabel('Prototype IDs', labelpad=10.0)
+    plt.ylabel('Percentage of cases for which a prototype\nachieved the best performance', labelpad=10.0)
+    plt.yticks(ticks=np.linspace(0, 12, 7), labels=['{}%'.format(int(x)) for x in np.linspace(0, 12, 7)])
     #plt.title('Comparison of the goodness of the prototypes')
     plt.legend()
-
     fig = plt.gcf()
-    fig.set_size_inches(10, 5, forward=True)
+    fig.set_size_inches(10.5, 5.5)
     fig.savefig(os.path.join(result_path, 'evaluation1.pdf'))
 
     plt.clf()
@@ -184,7 +196,18 @@ def save_comparison(results_pipelines, results_auto, result_path):
                           str(results_auto[algorithm][dataset][1]) + ',' + str(score) + '\n')
                 plot_results[algorithm][dataset] = score
 
-    plt.rcdefaults()
+    SMALL_SIZE = 18
+    MEDIUM_SIZE = 22
+    BIGGER_SIZE = 25
+
+    plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
+    plt.rc('axes', titlesize=BIGGER_SIZE)  # fontsize of the axes title
+    plt.rc('axes', labelsize=BIGGER_SIZE)  # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=MEDIUM_SIZE)  # fontsize of the tick labels
+    plt.rc('ytick', labelsize=MEDIUM_SIZE)  # fontsize of the tick labels
+    plt.rc('legend', fontsize=SMALL_SIZE)  # legend fontsize
+    plt.rc('figure', titlesize=SMALL_SIZE)  # fontsize of the figure title
+
     plt.axhline(y=1.0, color='#aaaaaa', linestyle='--')
 
     plt.boxplot([[value for value in plot_results['nb'].values() if value != 0],
@@ -192,15 +215,16 @@ def save_comparison(results_pipelines, results_auto, result_path):
                  [value for value in plot_results['rf'].values() if value != 0]])
 
 
-    plt.xlabel('Algorithms')
+    #plt.xlabel('Algorithms', labelpad=15.0)
     plt.xticks([1, 2, 3], ['NB', 'KNN', 'RF'])
-    plt.ylabel('Normalized distance')
-    plt.yticks(np.linspace(0, 1.1, 12))
+    plt.ylabel('Normalized distance', labelpad=15.0)
+    plt.yticks(np.linspace(0, 1.0, 6))
     plt.ylim(0.0, 1.1)
     #plt.title('Evaluation of the prototype building through the proposed precedence')
-
+    #plt.tight_layout()
+    plt.tight_layout(pad=0.2)
     fig = plt.gcf()
-    fig.set_size_inches(10, 5, forward=True)
+    fig.set_size_inches(10, 5)
     fig.savefig(os.path.join(result_path, 'evaluation2.pdf'))
 
     plt.clf()
