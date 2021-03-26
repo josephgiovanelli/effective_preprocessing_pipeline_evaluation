@@ -1,9 +1,9 @@
 import numpy as np
 import openml
 import os
-import h2o
+#import h2o
 import pandas as pd
-from pymfe.mfe import MFE
+#from pymfe.mfe import MFE
 
 from enum import Enum
 class UndefinedOrders(Enum):

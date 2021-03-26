@@ -961,7 +961,7 @@ scope.define_pure(operator.mul)
 try:
     scope.define_pure(operator.div)
 except AttributeError:
-    pass  # No more operator.div in Python3, but truediv also exists since Python2.2
+    pass  # No more operator.div in python, but truediv also exists since Python2.2
 scope.define_pure(operator.truediv)
 scope.define_pure(operator.floordiv)
 scope.define_pure(operator.neg)
