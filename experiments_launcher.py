@@ -28,7 +28,7 @@ elif args.mode == "preprocessing_algorithm":
     SCENARIO_PATH = "./scenarios/evaluation3/preprocessing_algorithm"
 else:
     raise Exception('unvalid mode option')
-RESULT_PATH = create_directory(RESULT_PATH, args.mode)
+create_directory(RESULT_PATH, args.mode)
 GLOBAL_SEED = 42
 
 def yes_or_no(question):
@@ -146,9 +146,9 @@ with tqdm(total=total_runtime) as pbar:
                     RESULT_PATH,
                     "preprocessing_algorithm",
                     len(pipelines))
-                with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
+                with open(os.path.join(RESULT_PATH, args.mode, '{}_stdout.txt'.format(base_scenario + "_" + str(i))),
                           "a") as log_out:
-                    with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
+                    with open(os.path.join(RESULT_PATH, args.mode, '{}_stderr.txt'.format(base_scenario + "_" + str(i))),
                               "a") as log_err:
                         max_time = 1000
                         try:
@@ -159,11 +159,11 @@ with tqdm(total=total_runtime) as pbar:
                             print("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
 
                 try:
-                    os.rename(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario)),
-                              os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i))))
+                    os.rename(os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario)),
+                              os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario + "_" + str(i))))
 
                     with open(
-                            os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
+                            os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario + "_" + str(i)))) as json_file:
                         data = json.load(json_file)
                         accuracy = data['context']['best_config']['score'] // 0.0001 / 100
                         results.append(accuracy)
@@ -178,16 +178,16 @@ with tqdm(total=total_runtime) as pbar:
                     if results[i] > results[max_i]:
                         max_i = i
 
-                src_dir = os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_" + str(max_i)))
-                dst_dir = os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_best_pipeline"))
+                src_dir = os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario + "_" + str(max_i)))
+                dst_dir = os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario + "_best_pipeline"))
                 shutil.copy(src_dir, dst_dir)
             except:
-                with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario + "_best_pipeline")), "a") as log_out:
+                with open(os.path.join(RESULT_PATH, args.mode, '{}.txt'.format(base_scenario + "_best_pipeline")), "a") as log_out:
                     log_out.write("trying to get the best pipeline: no available result")
 
 
             try:
-                with open(os.path.join(RESULT_PATH, '{}.json'.format(base_scenario + "_best_pipeline"))) as json_file:
+                with open(os.path.join(RESULT_PATH, args.mode, '{}.json'.format(base_scenario + "_best_pipeline"))) as json_file:
                     data = json.load(json_file)
                     pipeline = data['pipeline']
                 print(pipeline)
@@ -198,8 +198,8 @@ with tqdm(total=total_runtime) as pbar:
                     RESULT_PATH,
                     "algorithm",
                     len(pipelines))
-                with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
-                    with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
+                with open(os.path.join(RESULT_PATH, args.mode, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
+                    with open(os.path.join(RESULT_PATH, args.mode, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
                         max_time = 1000
                         try:
                             process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)
@@ -210,7 +210,7 @@ with tqdm(total=total_runtime) as pbar:
                             log_out.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
                             log_err.write("\n\n" + base_scenario + " does not finish in " + str(max_time) + "\n\n")
             except:
-                with open(os.path.join(RESULT_PATH, '{}.txt'.format(base_scenario)), "a") as log_out:
+                with open(os.path.join(RESULT_PATH, args.mode, '{}.txt'.format(base_scenario)), "a") as log_out:
                     log_out.write("\ntrying to run best pipeline and algorithm: could not find a pipeline")
         elif args.mode == "algorithm":
             cmd = 'python ./main.py -s {} -c control.seed={} -p {} -r {} -m {} -np {}'.format(
@@ -220,8 +220,8 @@ with tqdm(total=total_runtime) as pbar:
                 RESULT_PATH,
                 "algorithm",
                 0)
-            with open(os.path.join(RESULT_PATH, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
-                with open(os.path.join(RESULT_PATH, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
+            with open(os.path.join(RESULT_PATH, args.mode, '{}_stdout.txt'.format(base_scenario)), "a") as log_out:
+                with open(os.path.join(RESULT_PATH, args.mode, '{}_stderr.txt'.format(base_scenario)), "a") as log_err:
                     max_time = 1000
                     try:
                         process = subprocess.Popen(cmd, shell=True, stdout=log_out, stderr=log_err)

@@ -5,7 +5,7 @@ import argparse
 
 import pandas as pd
 
-from commons import benchmark_suite, algorithms
+from commons import large_comparison_classification_tasks, extended_benchmark_suite, benchmark_suite, algorithms
 from collections import OrderedDict
 from results_processors.utils import create_directory
 
@@ -68,7 +68,7 @@ def __write_scenario(path, scenario):
 
 def get_filtered_datasets():
     df = pd.read_csv("results_processors/meta_features/simple-meta-features.csv")
-    df = df.loc[df['did'].isin(benchmark_suite)]
+    df = df.loc[df['did'].isin(list(dict.fromkeys(extended_benchmark_suite + [10, 20, 26] + [15, 29, 1053, 1590])))]
     df = df.loc[df['NumberOfMissingValues'] / (df['NumberOfInstances'] * df['NumberOfFeatures']) < 0.1]
     df = df.loc[df['NumberOfInstancesWithMissingValues'] / df['NumberOfInstances'] < 0.1]
     df = df.loc[df['NumberOfInstances'] * df['NumberOfFeatures'] < 5000000]

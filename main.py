@@ -14,12 +14,14 @@ import numpy as np
 import pandas as pd
 
 
-def load_dataset(id):
+def load_dataset(id, optimization_type):
     dataset = openml.datasets.get_dataset(id)
     X, y, categorical_indicator, _ = dataset.get_data(
         dataset_format='array',
         target=dataset.default_target_attribute
     )
+    if optimization_type == "algorithm":
+        X = SimpleImputer(strategy="constant").fit_transform(X)
     print(dataset.name)
     print(X, y)
     #X = decode(X, categorical_indicator)
@@ -49,7 +51,7 @@ def main(args):
 
     PrototypeSingleton.getInstance().setPipeline(args.pipeline)
 
-    X, y = load_dataset(scenario['setup']['dataset'])
+    X, y = load_dataset(scenario['setup']['dataset'], args.mode)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
