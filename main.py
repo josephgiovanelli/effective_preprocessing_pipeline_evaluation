@@ -64,7 +64,7 @@ def main(args):
     policy = policies.initiate(scenario['setup']['policy'], config)
     policy.run(X, y)
 
-    serializer.serialize_results(scenario, policy, args.result_path, args.pipeline)
+    serializer.serialize_results(scenario, policy, os.path.join(args.result_path, args.mode), args.pipeline)
 
 def decode(X, categorical_indicator):
     if True in categorical_indicator:
