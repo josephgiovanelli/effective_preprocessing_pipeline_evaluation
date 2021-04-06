@@ -19,7 +19,7 @@ extended_benchmark_suite = [41145, 41156, 41157, 4541, 41158, 42742, 40498, 4273
 
 def get_filtered_datasets():
     df = pd.read_csv('meta_features/simple-meta-features.csv')
-    df = df.loc[df['did'].isin(list(dict.fromkeys(extended_benchmark_suite + [10, 20, 26] + [15, 29, 1053, 1590])))]
+    df = df.loc[df['did'].isin(list(dict.fromkeys(benchmark_suite + extended_benchmark_suite + [10, 20, 26] + [15, 29, 1053, 1590])))]
     df = df.loc[df['NumberOfMissingValues'] / (df['NumberOfInstances'] * df['NumberOfFeatures']) < 0.1]
     df = df.loc[df['NumberOfInstancesWithMissingValues'] / df['NumberOfInstances'] < 0.1]
     df = df.loc[df['NumberOfInstances'] * df['NumberOfFeatures'] < 5000000]
