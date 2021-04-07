@@ -6,7 +6,7 @@ import json
 class Policy(object):
     def __init__(self, config):
         self.PIPELINE_SPACE = PrototypeSingleton.getInstance().getDomainSpace()
-        self.compute_baseline = True
+        self.compute_baseline = False
         self.config = config
         self.context = {
             'iteration': 0,
