@@ -14,6 +14,7 @@ def main():
     # configure environment
     input, result_path = "../results/summary/evaluation3", "../results/summary/evaluation3"
     input_auto = "../results/evaluation3/preprocessing_algorithm"
+    result_path = create_directory(result_path, "extension")
 
     results_map = pd.DataFrame()
     for algorithm in ["knn", "nb", "rf"]:
@@ -39,11 +40,11 @@ def main():
                     try:
                         normalize_flag = "None" in pipeline["normalize"][0]
                     except:
-                        normalize_flag = False
+                        normalize_flag = True
                     try:
                         discretize_flag = "None" in pipeline["discretize"][0]
                     except:
-                        discretize_flag = False
+                        discretize_flag = True
                     rebalance_flag = "None" in pipeline["rebalance"][0]
 
                     results_map = results_map.append(pd.DataFrame({
