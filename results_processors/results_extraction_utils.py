@@ -17,10 +17,13 @@ benchmark_suite = [3, 6, 11, 12, 14, 15, 16, 18, 22, 23, 28, 29, 31, 32, 37, 44,
                        1480, 1485, 1486, 1487, 1468, 1475, 1462, 1464, 4534, 6332, 1461, 4538, 1478, 23381, 40499,
                        40668, 40966, 40982, 40994, 40983, 40975, 40984, 40979, 40996, 41027, 23517, 40923, 40927, 40978,
                        40670, 40701]
+extended_benchmark_suite = [41145, 41156, 41157, 4541, 41158, 42742, 40498, 42734, 41162, 42733, 42732, 1596, 40981, 40685, 
+                        4135, 41142, 41161, 41159, 41163, 41164, 41138, 41143, 41146, 41150, 40900, 41165, 41166, 41168, 41169, 
+                        41147, 1111, 1169, 41167, 41144, 1515, 1457, 181]
 
 def get_filtered_datasets():
     df = pd.read_csv('meta_features/simple-meta-features.csv')
-    df = df.loc[df['did'].isin(benchmark_suite)]
+    df = df.loc[df['did'].isin(benchmark_suite + extended_benchmark_suite + [10, 20, 26] + [15, 29, 1053, 1590])]
     df = df.loc[df['NumberOfMissingValues'] / (df['NumberOfInstances'] * df['NumberOfFeatures']) < 0.1]
     df = df.loc[df['NumberOfInstancesWithMissingValues'] / df['NumberOfInstances'] < 0.1]
     df = df.loc[df['NumberOfInstances'] * df['NumberOfFeatures'] < 5000000]
@@ -64,7 +67,10 @@ def load_results_auto(input_path, filtered_data_sets):
             with open(os.path.join(input_path, acronym + '.json')) as json_file:
                 data = json.load(json_file)
                 accuracy = data['context']['best_config']['score'] // 0.0001 / 100
-                baseline = data['context']['baseline_score'] // 0.0001 / 100
+                try:
+                    baseline = data['context']['baseline_score'] // 0.0001 / 100
+                except:
+                    baseline = 0
         else:
             accuracy = 0
             baseline = 0
@@ -169,7 +175,7 @@ def save_summary(summary_map, result_path):
 
     plt.xlabel('Prototype IDs', labelpad=10.0)
     plt.ylabel('Percentage of cases for which a prototype\nachieved the best performance', labelpad=10.0)
-    plt.yticks(ticks=np.linspace(0, 12, 7), labels=['{}%'.format(int(x)) for x in np.linspace(0, 12, 7)])
+    plt.yticks(ticks=np.linspace(0, 20, 11), labels=['{}%'.format(int(x)) for x in np.linspace(0, 20, 11)])
     #plt.title('Comparison of the goodness of the prototypes')
     plt.legend()
     fig = plt.gcf()
