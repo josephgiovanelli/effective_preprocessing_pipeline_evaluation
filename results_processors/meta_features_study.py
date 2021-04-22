@@ -40,7 +40,8 @@ def main():
         df[algorithm] = pd.merge(df[algorithm], meta_features, on="ID")
 
     ## Data Saving
-    meta_learning_input_path = create_directory(result_path, "meta_learning_input")
+    meta_learning_input_path = create_directory(result_path, "meta_learning")
+    meta_learning_input_path = create_directory(meta_learning_input_path, "input")
     for algorithm in algorithms:
         df[algorithm].to_csv(os.path.join(meta_learning_input_path, algorithm + '_raw.csv'), index=False)
 
@@ -66,17 +67,17 @@ def main():
 
         ## Data Saving
         for algorithm in algorithms:
-            data[algorithm].to_csv(os.path.join(meta_learning_input_path, 'manual_fs_' + algorithm + ('_pa_impact' if pa_impact else '') + '.csv'), index=False)
+            manual_fs_data[algorithm].to_csv(os.path.join(meta_learning_input_path, 'manual_fs_' + algorithm + ('_pa_impact' if pa_impact else '') + '.csv'), index=False)
 
         ## Data Preparation
+        for algorithm in algorithms:
+            data[algorithm]["algorithm"] = algorithm
+            manual_fs_data[algorithm]["algorithm"] = algorithm
         union = pd.concat([data["knn"], data["nb"], data["rf"]], ignore_index=True)
-        manual_fs_ = pd.concat([manual_fs_data["knn"], manual_fs_data["nb"], manual_fs_data["rf"]], ignore_index=True)
+        manual_fs_union = pd.concat([manual_fs_data["knn"], manual_fs_data["nb"], manual_fs_data["rf"]], ignore_index=True)
 
         ## Data Saving
         union.to_csv(os.path.join(meta_learning_input_path, 'union' + ('_pa_impact' if pa_impact else '') + '.csv'), index=False)
-        data[algorithm].to_csv(os.path.join(meta_learning_input_path, 'manual_fs_union' + ('_pa_impact' if pa_impact else '') + '.csv'), index=False)
-
-    
-
+        manual_fs_union.to_csv(os.path.join(meta_learning_input_path, 'manual_fs_union' + ('_pa_impact' if pa_impact else '') + '.csv'), index=False)
     
 main()
