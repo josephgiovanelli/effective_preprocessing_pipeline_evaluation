@@ -20,7 +20,7 @@ def main():
     for algorithm in ["knn", "nb", "rf"]:
 
         df = pd.read_csv(os.path.join("..", "results", "summary", "evaluation3", algorithm + ".csv"))
-        df = df[(df["pa_percentage"] == 0.5)]
+        df = df[(df["pa_percentage"] <= 0.5)]
         ids = list(df["dataset"])
 
         files = [f for f in listdir(input_auto) if isfile(join(input_auto, f))]
