@@ -41,13 +41,13 @@ def main():
         mf_data[algorithm] = pd.merge(mf_data[algorithm], meta_features, on="ID")
 
     results_map = pd.DataFrame({
-        "leaf": ["other_1", "other_2", "other_3", "union_1", "union_2"],
+        "leaf": ["other_1", "other_2", "other_3", "other_4", "union_1", "union_2", "union_3"],
         #"encode": np.zeros(4),
-        "features": np.zeros(5),
+        "features": np.zeros(7),
         #"impute": np.zeros(4),
-        "normalize": np.zeros(5),
-        "discretize": np.zeros(5),
-        "rebalance": np.zeros(5)
+        "normalize": np.zeros(7),
+        "discretize": np.zeros(7),
+        "rebalance": np.zeros(7)
         })
     count = 0
     for algorithm in ["knn", "nb", "rf"]:
@@ -82,20 +82,27 @@ def main():
                     #print(mf_data)
                     dataset_meta_features = mf_data[algorithm][(mf_data[algorithm]['ID'] == dataset)].iloc[0]
                     #print(dataset_meta_features)
-                    if dataset_meta_features["MajorityClassPercentage"] > 55.539:
-                        leaf = "union_1"
-                    else:
-                        if dataset_meta_features["EquivalentNumberOfAtts"] > 10.63 or pd.isnull(dataset_meta_features["EquivalentNumberOfAtts"]):
-                            if dataset_meta_features["MaxAttributeEntropy"] <= 3.083 or pd.isnull(dataset_meta_features["MaxAttributeEntropy"]):
-                                if dataset_meta_features["MinorityClassPercentage"] > 1.926 or pd.isnull(dataset_meta_features["MaxAttributeEntropy"]):
-                                    count += 1
+                    dataset_meta_features = mf_data[algorithm][(mf_data[algorithm]['ID'] == dataset)].iloc[0]
+                    if dataset_meta_features["ClassEntropy"] <= 1.787:
+                        if algorithm == "nb":
+                            leaf = "union_1"
+                        else:
+                            if dataset_meta_features["AutoCorrelation"] > 0.701:
+                                if dataset_meta_features["NumberOfFeatures"] <= 37:
                                     leaf = "union_2"
                                 else:
-                                    leaf = "other_3"
+                                    leaf = "other_2"
                             else:
-                                leaf = "other_2"
-                        else:
-                            leaf = "other_1"
+                                if dataset_meta_features["Quartile1MeansOfNumericAtts"] > 0.934:
+                                    if dataset_meta_features["PercentageOfNumericFeatures"] > 81.81:
+                                        count += 1
+                                        leaf = "union_3"
+                                    else:
+                                        leaf = "other_3"
+                                else:
+                                    leaf = "other_4"
+                    else:
+                        leaf = "other_1"
                     #results_map.loc[results_map["leaf"] == leaf, "encode"] = results_map.loc[results_map["leaf"] == leaf, "encode"] + encode_flag
                     results_map.loc[results_map["leaf"] == leaf, "features"] = results_map.loc[results_map["leaf"] == leaf, "features"] + features_flag
                     #results_map.loc[results_map["leaf"] == leaf, "impute"] = results_map.loc[results_map["leaf"] == leaf, "impute"] + impute_flag
@@ -103,11 +110,11 @@ def main():
                     results_map.loc[results_map["leaf"] == leaf, "discretize"] = results_map.loc[results_map["leaf"] == leaf, "discretize"] + discretize_flag
                     results_map.loc[results_map["leaf"] == leaf, "rebalance"] = results_map.loc[results_map["leaf"] == leaf, "rebalance"] + rebalance_flag
     print(count)
-    results_map.to_csv(os.path.join(result_path, "rebalance_meta_learning_output_process.csv"), index=False)
+    results_map.to_csv(os.path.join(result_path, "features_meta_learning_output_process.csv"), index=False)
 
     fig, axes = plt.subplots(nrows=1, ncols=1)
     results_map.plot(ax=axes, kind='bar', x='leaf')
-    fig.savefig(os.path.join(result_path, "rebalance_meta_learning_output_process.pdf"), bbox_inches='tight')
+    fig.savefig(os.path.join(result_path, "features_meta_learning_output_process.pdf"), bbox_inches='tight')
 
 
 main()
