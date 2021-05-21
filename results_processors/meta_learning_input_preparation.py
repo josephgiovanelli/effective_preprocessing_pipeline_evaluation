@@ -53,20 +53,36 @@ def main():
                 with open(os.path.join(input_auto, acronym + '.json')) as json_file:
                     data = json.load(json_file)
                     pipeline = data['context']['best_config']['pipeline']
-                    pipeline_conf = data['pipeline']
-                    pipeline_conf = ''.join([a[0] for a in pipeline_conf]).upper()
+
+                    encode_flag = pipeline["encode"][0].split("_",1)[1]
+                    features_flag = pipeline["features"][0].split("_",1)[1]
+                    impute_flag = pipeline["impute"][0].split("_",1)[1]
+                    try:
+                        normalize_flag = pipeline["normalize"][0].split("_",1)[1]
+                    except:
+                        normalize_flag = "NoneType"
+                    try:
+                        discretize_flag = pipeline["discretize"][0].split("_",1)[1]
+                    except:
+                        discretize_flag = "NoneType"
+                    rebalance_flag = pipeline["rebalance"][0].split("_",1)[1]
 
                     results_map[algorithm] = results_map[algorithm].append(pd.DataFrame({
                         "ID": [dataset], 
                         "baseline": [baseline_results[algorithm].loc[baseline_results[algorithm]["ID"] == dataset, "baseline"].iloc[0]],
-                        "conf": [pipeline_conf]
+                        "encode": [encode_flag],
+                        "features": [features_flag],
+                        "impute": [impute_flag],
+                        "normalize": [normalize_flag],
+                        "discretize": [discretize_flag],
+                        "rebalance": [rebalance_flag]
                         }), ignore_index=True)
 
     for algorithm in algorithms:
         results_map[algorithm] = pd.merge(results_map[algorithm], meta_features, on="ID")
 
     ## Data Saving
-    meta_learning_input_path = create_directory(result_path, "yet_another_meta_learning")
+    meta_learning_input_path = create_directory(result_path, "operator_meta_learning")
     meta_learning_input_path = create_directory(meta_learning_input_path, "input")
     for algorithm in algorithms:
         results_map[algorithm].to_csv(os.path.join(meta_learning_input_path, algorithm + '_raw.csv'), index=False)
