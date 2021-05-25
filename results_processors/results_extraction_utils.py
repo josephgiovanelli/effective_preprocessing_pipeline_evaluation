@@ -179,7 +179,7 @@ def save_summary(summary_map, result_path):
     #plt.title('Comparison of the goodness of the prototypes')
     plt.legend()
     fig = plt.gcf()
-    fig.set_size_inches(10.5, 5.5)
+    fig.set_size_inches(12, 6)
     fig.savefig(os.path.join(result_path, 'evaluation1.pdf'))
 
     plt.clf()
@@ -202,9 +202,9 @@ def save_comparison(results_pipelines, results_auto, result_path):
                           str(results_auto[algorithm][dataset][1]) + ',' + str(score) + '\n')
                 plot_results[algorithm][dataset] = score
 
-    SMALL_SIZE = 18
-    MEDIUM_SIZE = 22
-    BIGGER_SIZE = 25
+    SMALL_SIZE = 14
+    MEDIUM_SIZE = 16
+    BIGGER_SIZE = 18
 
     plt.rc('font', size=SMALL_SIZE)  # controls default text sizes
     plt.rc('axes', titlesize=BIGGER_SIZE)  # fontsize of the axes title
@@ -224,8 +224,8 @@ def save_comparison(results_pipelines, results_auto, result_path):
     #plt.xlabel('Algorithms', labelpad=15.0)
     plt.xticks([1, 2, 3], ['NB', 'KNN', 'RF'])
     plt.ylabel('Normalized distance', labelpad=15.0)
-    plt.yticks(np.linspace(0, 1.0, 6))
-    plt.ylim(0.0, 1.1)
+    plt.yticks(np.linspace(0, 1.2, 7))
+    plt.ylim(0.0, 1.25)
     #plt.title('Evaluation of the prototype building through the proposed precedence')
     #plt.tight_layout()
     plt.tight_layout(pad=0.2)
