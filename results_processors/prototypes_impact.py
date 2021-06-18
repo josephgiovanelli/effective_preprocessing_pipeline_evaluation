@@ -59,7 +59,7 @@ def main():
         ax[i].set_title("NB" if i == 0 else ("KNN" if i == 1 else "RF"))
         ax[i].set_xlabel('Prototypes IDs')
         ax[i].set_xticklabels(range(1,25), fontsize=8)
-    fig.text(0.0, 0.5, 'Impact in respect to the baseline', va='center', rotation='vertical')
+    fig.text(0.0, 0.5, 'Impact over the baseline', va='center', rotation='vertical')
     #plt.boxplot(knn, showfliers=False)
     #plt.xticks(range(1,25))
     #plt.ylabel('Mean of the p-values among the\n4 folds of cross-validation', labelpad=15.0)
