@@ -106,7 +106,7 @@ def main():
     x = np.arange(len(labels))  # the label locations
     width = 0.125  # the width of the bars
     SMALL_SIZE = 8
-    MEDIUM_SIZE = 15
+    MEDIUM_SIZE = 12
     BIGGER_SIZE = 21
     plt.rc('font', size=MEDIUM_SIZE)  # controls default text sizes
     plt.rc('axes', titlesize=MEDIUM_SIZE)  # fontsize of the axes title
@@ -134,7 +134,7 @@ def main():
     lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol = 5, bbox_to_anchor=(0.55, 1.0))
     text = fig.text(-0.2, 1.05, "", transform=ax.transAxes)
     fig.tight_layout()
-    fig.set_size_inches(10, 3)
+    fig.set_size_inches(10, 5)
     fig.savefig(os.path.join(result_path, "pp_pipeline_study2.pdf"), bbox_extra_artists=(lgd,text), bbox_inches='tight')
 
     '''

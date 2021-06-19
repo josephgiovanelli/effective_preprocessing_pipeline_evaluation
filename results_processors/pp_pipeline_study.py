@@ -113,6 +113,8 @@ def main():
     # Add some text for labels, title and custom x-axis tick labels, etc.
     ax.set_ylabel('Frequency')
     
+    
+    ax.set_yticks(np.linspace(0, 1, 11))
     vals = ax.get_yticks()
     ax.set_yticklabels(['{:,.0%}'.format(x) for x in vals])
     ax.set_xticks(x)
