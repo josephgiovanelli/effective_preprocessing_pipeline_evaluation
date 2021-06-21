@@ -122,7 +122,7 @@ def main():
         ax.bar((x * width * 20) + (width * (column)), results_map[columns[column]], width, label=columns[column], color=colors[column], hatch=patterns[column])
 
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Frequency')
+    #ax.set_ylabel('Frequency')
     vals = ax.get_yticks()
     ax.set_yticklabels(['{:,.0%}'.format(x) for x in vals])
     ax.set_xticks(x*2.5+0.88)

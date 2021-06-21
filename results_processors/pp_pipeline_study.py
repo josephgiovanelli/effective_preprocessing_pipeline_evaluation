@@ -34,63 +34,37 @@ def main():
             if acronym in results:
                 with open(os.path.join(input_auto, acronym + '.json')) as json_file:
                     data = json.load(json_file)
-                    accuracy = data['context']['best_config']['score'] // 0.0001 / 100
                     pipeline = data['context']['best_config']['pipeline']
+                    for transformation in ["encode", "features", "impute", "normalize", "discretize", "rebalance"]:
+                        try:
+                            results_map = results_map.append(pd.DataFrame({
+                                "algorithm": [algorithm],
+                                "dataset": [dataset],
+                                "transformation": [pipeline[transformation][0].split("_")[0]],
+                                "operator": [pipeline[transformation][0].split("_")[1]]
+                            }), ignore_index=True)
+                        except:
+                            pass
 
-                    encode_flag = 1 if "None" not in pipeline["encode"][0] else 0
-                    features_flag = 1 if "None" not in pipeline["features"][0] else 0
-                    impute_flag = 1 if "None" not in pipeline["impute"][0] else 0
-                    try:
-                        normalize_flag = 1 if "None" not in pipeline["normalize"][0] else 0
-                        normalize_count[algorithm] += 1
-                    except:
-                        normalize_flag = 0
-                    try:
-                        discretize_flag = 1 if "None" not in pipeline["discretize"][0] else 0
-                        discretize_count[algorithm] += 1
-                    except:
-                        discretize_flag = 0
-                    rebalance_flag = 1 if "None" not in pipeline["rebalance"][0] else 0
 
-                    results_map = results_map.append(pd.DataFrame({
-                        "algorithm": [algorithm],
-                        "dataset": [dataset],
-                        "E": [encode_flag],
-                        "N": [normalize_flag],
-                        "D": [discretize_flag],
-                        "I": [impute_flag],
-                        "R": [rebalance_flag],
-                        "F": [features_flag]
-                    }), ignore_index=True)
+    results_map.to_csv(os.path.join(result_path, "pp_pipeline_operator_study.csv"), index=False)
 
-    results_map.to_csv(os.path.join(result_path, "pp_pipeline_study.csv"), index=False)
-
-    result = results_map.groupby(['algorithm']).sum()
+    result = results_map.groupby(['algorithm', 'transformation', 'operator']).count()
+    result_sum = result.groupby(['algorithm', 'transformation']).sum()
+    for algorithm in result.index.get_level_values('algorithm').unique():
+        for transformation in result.index.get_level_values('transformation').unique():
+            for operator in result.index.get_level_values('operator').unique():
+                try:
+                    result.loc[algorithm, transformation, operator] /= result_sum.loc[algorithm, transformation]
+                except:
+                    pass
     result = result.reset_index()
-    result = result.drop(['dataset'], axis=1)
-    result = result.set_index(["algorithm"])
-    result = result.reindex(["nb", "knn", "rf"])
-
-    for algorithm in ["nb", "knn", "rf"]:
-        result.loc[algorithm,'N'] /= normalize_count[algorithm]
-        result.loc[algorithm,'D'] /= discretize_count[algorithm]
-    result = result.reset_index()
-    result['E'] = result['E'] / 80
-    result['I'] = result['I'] / 80
-    result['R'] = result['R'] / 80
-    result['F'] = result['F'] / 80
-    print(normalize_count, discretize_count)
-    result.to_csv(os.path.join(result_path, "pp_pipeline_study_grouped.csv"), index=False)
-    result = result.rename(columns={
-        'E' : r'$E$',
-        'I' : r'$I$',
-        'N' : r'$N$',
-        'D' : r'$D$',
-        'F' : r'$F$',
-        'R' : r'$R$',
-    })
-    labels = [x.upper() for x in result["algorithm"]]
-    colors = ['mediumpurple', 'greenyellow', 'lightcoral', 'gold', 'mediumturquoise', 'orange']
+    result = result[result['operator'] != 'NoneType']
+    result = result.set_index(['transformation', 'operator', 'algorithm'])
+    print(result)
+    
+    labels = ["NB", "KNN", "RF"]
+    colors = ['mediumpurple', 'xkcd:dark grass green', 'xkcd:kermit green', 'xkcd:lime green', 'xkcd:light pea green', 'xkcd:dark coral', 'xkcd:salmon', 'xkcd:sun yellow', 'xkcd:straw', 'xkcd:aqua green', 'xkcd:light aquamarine', 'xkcd:pumpkin orange', 'xkcd:apricot', 'xkcd:light peach']
     x = np.arange(len(labels))  # the label locations
     width = 0.125  # the width of the bars
     SMALL_SIZE = 8
@@ -105,14 +79,37 @@ def main():
     plt.rc('legend', fontsize=MEDIUM_SIZE)  # legend fontsize
     plt.rc('figure', titlesize=MEDIUM_SIZE)  # fontsize of the figure title
     fig, ax = plt.subplots()
-    rects = {}
-    columns = list(result.columns)[1:]
-    for column in range(len(columns)):
-        ax.bar((x * width * 8) + (width * (column - 1)) - 0.2, result[columns[column]], width, color=colors[column], label=columns[column])
-
+    column = -1
+    i = 0
+    cumulative = False
+    last_transformation, last_operator = '', ''
+    for transformation in ['encode', 'normalize', 'discretize', 'impute', 'rebalance', 'features']:
+        for operator in result.index.get_level_values('operator').unique():
+            try:
+                result.loc[transformation, operator]
+                flag = True
+            except:
+                flag = False
+            if flag:
+                curr_bar = result.loc[transformation, operator].to_numpy().flatten()
+                curr_bar = [curr_bar[1], curr_bar[0], curr_bar[2]]
+                if transformation != last_transformation or last_transformation == '':
+                    column += 1
+                    ax.bar((x * width * 8) + (width * (column - 1)) - 0.2, curr_bar, width, color=colors[i], label=transformation[0].upper() + "  " + (" " if transformation[0].upper() == "I" else "") + operator)
+                else:
+                    if not(cumulative):
+                        last_bar = result.loc[last_transformation, last_operator].to_numpy().flatten()
+                        last_bar = [last_bar[1], last_bar[0], last_bar[2]]
+                    ax.bar((x * width * 8) + (width * (column - 1)) - 0.2, curr_bar, width, bottom=last_bar, color=colors[i], label=transformation[0].upper() + "  " + (" " if transformation[0].upper() == "I" else "") + operator)
+                if transformation == last_transformation:
+                    cumulative = True
+                    last_bar = [curr_bar[0] + last_bar[0], curr_bar[1] + last_bar[1], curr_bar[2] + last_bar[2]]
+                else:
+                    cumulative = False
+                last_transformation, last_operator = transformation, operator
+                i += 1
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Frequency')
-    
+    #ax.set_ylabel('Frequency')
     
     ax.set_yticks(np.linspace(0, 1, 11))
     vals = ax.get_yticks()
@@ -123,10 +120,10 @@ def main():
 
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
-    lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol = 8, bbox_to_anchor=(0.55, 1.0))
+    lgd = fig.legend(by_label.values(), by_label.keys(), loc='lower center', ncol = 3, bbox_to_anchor=(0.55, 1.0))
     text = fig.text(-0.2, 1.05, "", transform=ax.transAxes)
     fig.tight_layout()
     fig.set_size_inches(10, 5)
     fig.savefig(os.path.join(result_path, "pp_pipeline_study_grouped.pdf"), bbox_extra_artists=(lgd,text), bbox_inches='tight')
-
+    
 main()
