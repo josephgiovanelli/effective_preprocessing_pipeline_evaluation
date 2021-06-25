@@ -173,7 +173,7 @@ def save_summary(summary_map, result_path):
     plt.bar([str(int(a) + 1) for a in winners['pipelines']], winners['knn'], bottom=winners['nb'], label=algorithm_map['knn'], color="darkturquoise")
     plt.bar([str(int(a) + 1) for a in winners['pipelines']], winners['rf'], bottom=winners['nb'] +  winners['knn'], label=algorithm_map['rf'], color="violet")
 
-    plt.xlabel('Prototype IDs', labelpad=10.0)
+    plt.xlabel('Prototype ID', labelpad=10.0)
     plt.ylabel('Percentage of cases for which a prototype\nachieved the best performance', labelpad=10.0)
     plt.yticks(ticks=np.linspace(0, 20, 11), labels=['{}%'.format(int(x)) for x in np.linspace(0, 20, 11)])
     #plt.title('Comparison of the goodness of the prototypes')

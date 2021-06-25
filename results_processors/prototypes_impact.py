@@ -57,7 +57,7 @@ def main():
     for i in range(len(data)):
         ax[i].boxplot(data[i], showfliers=False)
         ax[i].set_title("NB" if i == 0 else ("KNN" if i == 1 else "RF"))
-        ax[i].set_xlabel('Prototypes IDs')
+        ax[i].set_xlabel('Prototypes ID')
         ax[i].set_xticklabels(range(1,25), fontsize=8)
     fig.text(0.0, 0.5, 'Impact over the baseline', va='center', rotation='vertical')
     #plt.boxplot(knn, showfliers=False)
