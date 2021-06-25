@@ -6,3 +6,4 @@ python experiments_launcher.py
 cd results_processors
 python results_extraction.py
 python results_comparison.py
+python prototypes_impact.py
