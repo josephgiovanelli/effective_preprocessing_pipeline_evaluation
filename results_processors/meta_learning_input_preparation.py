@@ -84,20 +84,20 @@ def main():
     ## Data Saving
     meta_learning_input_path = create_directory(result_path, "operator_meta_learning")
     meta_learning_input_path = create_directory(meta_learning_input_path, "input")
-    for algorithm in algorithms:
-        results_map[algorithm].to_csv(os.path.join(meta_learning_input_path, algorithm + '_raw.csv'), index=False)
+    #for algorithm in algorithms:
+    #    results_map[algorithm].to_csv(os.path.join(meta_learning_input_path, algorithm + '_raw.csv'), index=False)
 
     data = copy.deepcopy(results_map)
 
     ## Data Preparation
     benchmarking_features = ['CfsSubsetEval_NaiveBayesErrRate', 'NaiveBayesErrRate', 'RandomTreeDepth2AUC', 'RandomTreeDepth3Kappa', 'REPTreeDepth2AUC', 'J48.001.ErrRate', 'CfsSubsetEval_DecisionStumpKappa', 'J48.0001.ErrRate', 'J48.00001.Kappa', 'RandomTreeDepth2ErrRate', 'REPTreeDepth2ErrRate', 'CfsSubsetEval_NaiveBayesKappa', 'RandomTreeDepth2Kappa', 'RandomTreeDepth3ErrRate', 'REPTreeDepth1AUC', 'REPTreeDepth1ErrRate', 'REPTreeDepth2Kappa', 'NaiveBayesKappa', 'CfsSubsetEval_NaiveBayesAUC', 'REPTreeDepth3Kappa', 'kNN1NAUC', 'J48.001.Kappa', 'DecisionStumpErrRate', 'DecisionStumpAUC', 'J48.00001.AUC', 'REPTreeDepth1Kappa', 'RandomTreeDepth3AUC', 'REPTreeDepth3AUC', 'J48.0001.Kappa', 'CfsSubsetEval_DecisionStumpErrRate', 'J48.00001.ErrRate', 'RandomTreeDepth1Kappa', 'RandomTreeDepth1AUC', 'CfsSubsetEval_kNN1NErrRate', 'DecisionStumpKappa', 'kNN1NErrRate', 'kNN1NKappa', 'J48.001.AUC', 'CfsSubsetEval_kNN1NAUC', 'NaiveBayesAUC', 'CfsSubsetEval_DecisionStumpAUC', 'RandomTreeDepth1ErrRate', 'CfsSubsetEval_kNN1NKappa', 'REPTreeDepth3ErrRate', 'J48.0001.AUC']
     manual_fs_data = data.copy()
-    for algorithm in algorithms:
-        manual_fs_data[algorithm].drop(benchmarking_features, axis=1, inplace=True)
+    #for algorithm in algorithms:
+    #    manual_fs_data[algorithm].drop(benchmarking_features, axis=1, inplace=True)
 
     ## Data Saving
-    for algorithm in algorithms:
-        manual_fs_data[algorithm].to_csv(os.path.join(meta_learning_input_path, 'manual_fs_' + algorithm + '.csv'), index=False)
+    #for algorithm in algorithms:
+    #    manual_fs_data[algorithm].to_csv(os.path.join(meta_learning_input_path, 'manual_fs_' + algorithm + '.csv'), index=False)
 
     ## Data Preparation
     for algorithm in algorithms:
@@ -107,7 +107,7 @@ def main():
     manual_fs_union = pd.concat([manual_fs_data["knn"], manual_fs_data["nb"], manual_fs_data["rf"]], ignore_index=True)
 
     ## Data Saving
-    union.to_csv(os.path.join(meta_learning_input_path, 'union' + '.csv'), index=False)
-    manual_fs_union.to_csv(os.path.join(meta_learning_input_path, 'manual_fs_union' + '.csv'), index=False)
+    #union.to_csv(os.path.join(meta_learning_input_path, 'union' + '.csv'), index=False)
+    manual_fs_union.to_csv(os.path.join(meta_learning_input_path, 'data' + '.csv'), index=False)
     
 main()
