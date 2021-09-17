@@ -109,7 +109,7 @@ def main():
                 last_transformation, last_operator = transformation, operator
                 i += 1
     # Add some text for labels, title and custom x-axis tick labels, etc.
-    ax.set_ylabel('Percentage')
+    ax.set_ylabel('Usage')
     ax.set_xlabel('Algorithms')
     ax.set_yticks(np.linspace(0, 1, 11))
     vals = ax.get_yticks()
