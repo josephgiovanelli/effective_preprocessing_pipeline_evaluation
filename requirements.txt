@@ -9,7 +9,7 @@ imblearn==0.0
 joblib==0.14.0
 liac-arff==2.4.0
 networkx==2.3
-numpy==1.17.2
+numpy==1.22.0
 openml==0.9.0
 pandas==0.25.1
 prettytable==0.7.2
