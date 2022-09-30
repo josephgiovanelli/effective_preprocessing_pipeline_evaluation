@@ -6,7 +6,7 @@ h2o==3.26.0.2
 idna==2.8
 imbalanced-learn==0.5.0
 imblearn==0.0
-joblib==0.14.0
+joblib==1.2.0
 liac-arff==2.4.0
 networkx==2.3
 numpy==1.17.2
